@@ -15,11 +15,17 @@ import { AuthInterceptor } from './configs/interceptors/auth.interceptor';
 import { AuthorizationGuard } from './modules/auth/authrization.guard';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionsModule } from './modules/permissions/permissions.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     RequestContextModule,
     MongooseModule.forRoot('mongodb://localhost:27017',{dbName: 'translation'}),
+    ConfigModule.forRoot({
+      envFilePath: '.local.env',
+      isGlobal: true,
+      // envFilePath: '.prod.env',
+    }),
     UsersModule, 
     JobsModule, AuthModule, LoggerModule, RolesModule, PermissionsModule],
     providers:[
