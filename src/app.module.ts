@@ -1,6 +1,4 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -21,11 +19,6 @@ import { APP_CONFIGS } from './config/app.config';
   imports: [
     RequestContextModule,
     MongooseModule.forRoot(APP_CONFIGS.DB.URL,{dbName: APP_CONFIGS.DB.NAME}),
-    // ConfigModule.forRoot({
-    //   envFilePath: '.local.env',
-    //   isGlobal: true,
-    //   // envFilePath: '.prod.env',
-    // }),
     UsersModule, 
     JobsModule, AuthModule, LoggerModule, RolesModule, PermissionsModule ],
     providers:[
