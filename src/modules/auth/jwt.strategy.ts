@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
   async validate(payload: any) {
-    console.log(`token validated ${JSON.stringify(payload)}`)
+    // console.log(`token validated ${JSON.stringify(payload)}`)
     let currentUser:any = {
         email:payload.email,
         userId:payload.id
