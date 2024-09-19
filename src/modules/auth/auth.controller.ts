@@ -3,8 +3,6 @@ import { Public } from 'src/config/decorator/public.route.decorator';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 
-
-
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

@@ -6,23 +6,21 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-
   @Prop()
   name: string;
 
   @Prop()
   password: string;
 
-  @Prop({unique:true,required:true})
+  @Prop({ unique: true, required: true })
   email: string;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }] })
   roles: Role[];
 
-  enable:boolean;
+  enable: boolean;
 
-  deleted:boolean;
- 
+  deleted: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

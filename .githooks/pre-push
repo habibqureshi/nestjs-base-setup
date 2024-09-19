@@ -1,0 +1,6 @@
+#!/bin/bash
+BRANCH_NAME=$(git branch --show-current)
+if [[ ! "$BRANCH_NAME" =~ ^(feature|bugfix|hotfix|release)\/[a-zA-Z0-9._-]+$ ]]; then
+  printf "Branch name \033[1;31m$BRANCH_NAME\033[0m does not follow the naming convention.\n"
+  exit 1
+fi
