@@ -1,6 +1,7 @@
 import { Injectable, Logger, Scope } from '@nestjs/common';
 import { RequestContext } from 'nestjs-request-context';
 
+
 @Injectable({ scope: Scope.REQUEST })
 export class CustomLoggerService extends Logger {
   log(message: string) {
@@ -9,10 +10,11 @@ export class CustomLoggerService extends Logger {
     const lineNumber = this.getLineNumber();
     const request = this.getRequest();
     const requestId = request['requestId'] || '0';
-    const user = request['user'] || 'Unknown';
+    const ipAddress = request['ip'] || 'No IP';
+    const user = request['user'] || 'System';
     // super.log(`[${timestamp}] [${filename}:${lineNumber}] [${username}] ${message}`, context);
     super.log(
-      `${requestId} ${user.email} ${timestamp} ${filename} : ${lineNumber}   ${message}`,
+      `${requestId} ${ipAddress} ${user.email} ${timestamp} ${filename} : ${lineNumber}   ${message}`,
     );
   }
 
