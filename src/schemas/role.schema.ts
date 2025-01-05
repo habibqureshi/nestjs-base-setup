@@ -1,16 +1,29 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Permission } from './permission.schema';
+import { RoleType } from 'src/enums/roles.type.enum';
 
-export type RoleDocument = HydratedDocument<Role>;
-
-@Schema()
+@Entity('roles')
 export class Role {
-  @Prop()
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Permission' }] })
+  // @Column({ type: 'enum', enum: RoleType, nullable: false })
+  // type: RoleType;
+
+  @ManyToMany(() => Permission)
+  @JoinTable({
+    name:"role_permission",
+    joinColumn: { name: 'role_id' },
+    inverseJoinColumn: { name: 'permission_id' }
+  })  
   permissions: Permission[];
 }
-
-export const RoleSchema = SchemaFactory.createForClass(Role);

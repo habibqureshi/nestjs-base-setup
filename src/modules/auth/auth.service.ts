@@ -10,6 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CustomLoggerService } from '../logger/logger.service';
 import { JwtStrategy } from './jwt.strategy';
+import { User } from 'src/schemas/user.schema';
+import { jwtConstants } from 'src/constants/jwt.constant';
 
 @Injectable()
 export class AuthService {
@@ -21,8 +23,8 @@ export class AuthService {
     private readonly jwtStrategy: JwtStrategy,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<IUser> {
-    const user: IUser = await this.userService.findOne({ email });
+  async validateUser(email: string, password: string): Promise<User> {
+    const user: User = await this.userService.findOne({ email });
     const isMatch: boolean = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       this.logger.log(`Password does not match`);
@@ -33,29 +35,19 @@ export class AuthService {
   }
 
   async login(user: IUser): Promise<any> {
-    // const payload = { email: user.email, id: user.id };
+    this.logger.log(user)
     const payload = { email: user.email, id: user, roles: user.roles };
     const accessToken = this.jwtService.sign(payload);
-    this.logger.log(
-      `validating token  ${JSON.stringify(await this.jwtStrategy.validate(payload))}`,
-    );
+    // this.logger.log(
+    //   `validating token  ${JSON.stringify(await this.jwtStrategy.validate(payload))}`,
+    // );
     return {
       user: {
         name: user.name,
         email: user.email,
+        roles:user.roles
       },
       accessToken,
     };
   }
-
-  //   async register(user: RegisterRequestDto): Promise<AccessToken> {
-  //     const existingUser = await this.usersService.findOneByEmail(user.email);
-  //     if (existingUser) {
-  //       throw new BadRequestException('email already exists');
-  //     }
-  //     const hashedPassword = await bcrypt.hash(user.password, 10);
-  //     const newUser: User = { ...user, password: hashedPassword };
-  //     await this.usersService.create(newUser);
-  //     return this.login(newUser);
-  //   }
 }

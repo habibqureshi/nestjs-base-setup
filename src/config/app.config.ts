@@ -1,17 +1,36 @@
 import * as dotenv from 'dotenv';
+import { join } from 'path';
 
-// Load .env file before anything else
 dotenv.config({
-  path:
-    process.cwd() +
-    // '/.local.env'
-    '/.production.env',
+  path: process.cwd() + '/.dev.env',
 });
+
+console.log(`Using environment configuration from: ${process.cwd()}/.dev.env`);
 
 export const APP_CONFIGS = {
   DB: {
-    NAME: process.env.DB_NAME || 'translation',
-    URL: process.env.DB_URL || 'mongodb://localhost:27017',
+    TYPE: process.env.DB_TYPE || 'mongodb', // 'mysql' or 'mongodb'
+    MYSQL_HOST:
+      process.env.DB_TYPE === 'mysql' ? process.env.MYSQL_HOST ||  'localhost':'localhost', // MySQL host
+    MYSQL_PORT:
+      process.env.DB_TYPE === 'mysql' ? Number(process.env.MYSQL_PORT) || 3306 : 3306, // MySQL port
+    MYSQL_USER:
+      process.env.DB_TYPE === 'mysql' ? process.env.MYSQL_USER || 'root' : 'root', // MySQL user
+    MYSQL_PASSWORD:
+      process.env.DB_TYPE === 'mysql' ? process.env.MYSQL_PASSWORD || '' : '', // MySQL password
+    MYSQL_NAME:
+      process.env.DB_TYPE === 'mysql'
+        ? process.env.MYSQL_DB_NAME || 'test'
+        : 'test', // MySQL database name
+    MONGODB_URL:
+      process.env.DB_TYPE === 'mongodb'
+        ? process.env.DB_URL || 'mongodb://localhost:27017'
+        : '', // MongoDB URL
+    MONGODB_NAME:
+      process.env.DB_TYPE === 'mongodb'
+        ? process.env.DB_NAME || 'test'
+        : '', // MongoDB database name
+    SYNCHRONIZE: process.env.DB_SYNCHRONIZE === 'true', // Synchronization option for TypeORM
   },
   JWT: {
     SECRET: process.env.JWT_SECRET || 'MY_SECRET',

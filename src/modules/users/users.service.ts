@@ -6,46 +6,49 @@ import { User } from 'src/schemas/user.schema';
 import { CustomLoggerService } from '../logger/logger.service';
 import { CreateUserDto } from './dtos/create.user.dto';
 import * as bcrypt from 'bcrypt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeepPartial, Repository } from 'typeorm';
+import { use } from 'passport';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<IUser>,
+    @InjectRepository(User) private userRepository: Repository<User>,
     private readonly logger: CustomLoggerService,
   ) {}
 
-  async create(createUser: CreateUserDto): Promise<IUser> {
+  async create(createUser: DeepPartial<User>): Promise<User> {
     if (createUser.password) {
       createUser.password = await bcrypt.hash(createUser.password, 10);
     }
     this.logger.log(`creating user ${JSON.stringify(createUser)}`);
-    const createdUser = new this.userModel(createUser);
-    return createdUser.save();
+    const newUser =  this.userRepository.create(createUser);
+    this.logger.log(newUser)
+    return await this.userRepository.save(newUser,{reload:true});
   }
 
-  async findAll(params: any): Promise<Array<IUser> | null> {
-    return await this.userModel
-      .find()
-      .populate({
-        path: 'roles',
-        populate: {
-          path: 'permissions',
-        },
+  async findAll(params: any): Promise<Array<User> | null> {
+    const {limit=10,offset=0 , where = {}} = params
+    const  [result, total] =  await this.userRepository
+      .findAndCount({
+        where,
+        skip:offset,
+        take:limit
       })
-      .exec();
+      this.logger.log( `total users ${total}`)
+      return result
+      
   }
 
-  async findOne(params: any): Promise<IUser | null> {
+  async findOne(params: any): Promise<User | null> {
     this.logger.log(`finding user with params ${JSON.stringify(params)}`);
-    const user: IUser = await this.userModel
-      .findOne(params)
-      .populate({
-        path: 'roles',
-        populate: {
-          path: 'permissions',
-        },
-      })
-      .exec();
+    const user: User = await this.userRepository
+      .findOne({where:params, relations: {
+        roles:{
+          permissions:true
+        }
+      },})
+  
     if (!user) {
       this.logger.log(`user not found`);
       throw new BadRequestException(`User Not found`);

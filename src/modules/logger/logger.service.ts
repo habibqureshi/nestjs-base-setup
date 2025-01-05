@@ -4,7 +4,7 @@ import { RequestContext } from 'nestjs-request-context';
 
 @Injectable({ scope: Scope.REQUEST })
 export class CustomLoggerService extends Logger {
-  log(message: string) {
+  log(message: string | object) {
     const timestamp = new Date().toISOString();
     const filename = this.getFilename();
     const lineNumber = this.getLineNumber();
@@ -12,12 +12,12 @@ export class CustomLoggerService extends Logger {
     const requestId = request['requestId'] || '0';
     const ipAddress = request['ip'] || 'No IP';
     const user = request['user'] || 'System';
+    const messageToLogged = typeof(message) == 'string' ? message: JSON.stringify(message) 
     // super.log(`[${timestamp}] [${filename}:${lineNumber}] [${username}] ${message}`, context);
     super.log(
-      `${requestId} ${ipAddress} ${user.email} ${timestamp} ${filename} : ${lineNumber}   ${message}`,
+      `${requestId} ${ipAddress} ${user.email} ${timestamp} ${filename} : ${lineNumber}   ${messageToLogged}`,
     );
   }
-
   error(message: string, trace: string, context?: string, request?: Request) {
     const timestamp = new Date().toISOString();
     const filename = this.getFilename();

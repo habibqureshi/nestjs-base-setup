@@ -12,7 +12,7 @@ export class AuthorizationGuard extends AuthGuard('jwt') {
   canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest();
     const currentUser = req.user;
-    // console.log('can active authorization guard',currentUser)
+    console.log('can active authorization guard',currentUser)
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

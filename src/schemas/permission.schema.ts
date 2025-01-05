@@ -1,12 +1,13 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export type PermissionDocument = HydratedDocument<Permission>;
-
-@Schema()
+@Entity('permissions')
 export class Permission {
-  @Prop()
-  name: string;
-}
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-export const PermissionSchema = SchemaFactory.createForClass(Permission);
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  name: string;
+  
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  url: string;
+}
