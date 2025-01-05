@@ -11,7 +11,6 @@ import { UsersService } from '../users/users.service';
 import { CustomLoggerService } from '../logger/logger.service';
 import { JwtStrategy } from './jwt.strategy';
 import { User } from 'src/schemas/user.schema';
-import { jwtConstants } from 'src/constants/jwt.constant';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +34,7 @@ export class AuthService {
   }
 
   async login(user: IUser): Promise<any> {
-    this.logger.log(user)
+    this.logger.log(user);
     const payload = { email: user.email, id: user, roles: user.roles };
     const accessToken = this.jwtService.sign(payload);
     // this.logger.log(
@@ -45,7 +44,7 @@ export class AuthService {
       user: {
         name: user.name,
         email: user.email,
-        roles:user.roles
+        roles: user.roles,
       },
       accessToken,
     };

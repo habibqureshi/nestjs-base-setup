@@ -17,9 +17,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (isPublic) {
       return true;
     }
-    console.log("acn active")
+    console.log('acn active');
     // return true;
     return super.canActivate(context);
   }
 }
-

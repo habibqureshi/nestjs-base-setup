@@ -19,8 +19,7 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
       Database: ${APP_CONFIGS.DB.MONGODB_NAME}`);
   }
 
-
-  return  {
+  return {
     type: isMySQL ? 'mysql' : 'mongodb',
     host: isMySQL ? APP_CONFIGS.DB.MYSQL_HOST : undefined, // Use MySQL host; undefined for MongoDB
     port: isMySQL ? APP_CONFIGS.DB.MYSQL_PORT : undefined, // Use MySQL port; undefined for MongoDB
@@ -32,7 +31,6 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
     entities: [__dirname + '/../**/*.schema{.ts,.js}'], // Entities location
     useUnifiedTopology: true, // MongoDB specific option
     ...(isMySQL ? {} : { useNewUrlParser: true }), // MongoDB specific option
-    "logging": true
+    logging: true,
   };
-
 };

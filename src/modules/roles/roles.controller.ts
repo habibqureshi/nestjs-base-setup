@@ -11,7 +11,6 @@ import {
 import { Role } from 'src/schemas/role.schema';
 import { RoleService } from './roles.service';
 
-
 @Controller('roles')
 export class RolesController {
   constructor(private readonly roleService: RoleService) {}

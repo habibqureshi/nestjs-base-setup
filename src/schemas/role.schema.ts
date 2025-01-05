@@ -6,7 +6,6 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Permission } from './permission.schema';
-import { RoleType } from 'src/enums/roles.type.enum';
 
 @Entity('roles')
 export class Role {
@@ -21,9 +20,9 @@ export class Role {
 
   @ManyToMany(() => Permission)
   @JoinTable({
-    name:"role_permission",
+    name: 'role_permission',
     joinColumn: { name: 'role_id' },
-    inverseJoinColumn: { name: 'permission_id' }
-  })  
+    inverseJoinColumn: { name: 'permission_id' },
+  })
   permissions: Permission[];
 }

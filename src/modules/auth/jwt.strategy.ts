@@ -1,14 +1,12 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { CustomLoggerService } from '../logger/logger.service';
-import { jwtConstants } from 'src/constants/jwt.constant';
 import { APP_CONFIGS } from 'src/config/app.config';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
-    console.log("auth stratergy init")
+    console.log('auth stratergy init');
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -16,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy,'jwt') {
     });
   }
   async validate(payload: any) {
-    console.log(`token validated ${JSON.stringify(payload)}`)
+    console.log(`token validated ${JSON.stringify(payload)}`);
     const currentUser: any = {
       email: payload.email,
       userId: payload.id,

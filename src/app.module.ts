@@ -1,15 +1,11 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UsersModule } from './modules/users/users.module';
-import { RequestIdMiddleware } from './config/middlewares/mw.request.id';
-import {
-  RequestContextModule,
-} from 'nestjs-request-context';
+import { RequestContextModule } from 'nestjs-request-context';
 import { AuthModule } from './modules/auth/auth.module';
 import { LoggerModule } from './modules/logger/logger.module';
 import { JwtStrategy } from './modules/auth/jwt.strategy';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { AuthInterceptor } from './config/interceptors/auth.interceptor';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthorizationGuard } from './modules/auth/authrization.guard';
 import { RolesModule } from './modules/roles/roles.module';
 import { PermissionModule } from './modules/permissions/permissions.module';
@@ -35,13 +31,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     {
       provide: APP_GUARD,
       useClass: AuthorizationGuard,
-    }
+    },
   ],
 })
 export class AppModule implements NestModule {
-  
   configure(consumer: MiddlewareConsumer) {
     // consumer.apply(RequestIdMiddleware).forRoutes('*');
-    console.log(typeOrmConfig())
+    console.log(typeOrmConfig(), consumer);
   }
 }
