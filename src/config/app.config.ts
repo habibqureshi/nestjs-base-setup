@@ -4,7 +4,9 @@ dotenv.config({
   path: process.cwd() + '/.dev.env',
 });
 
-console.log(`Using environment configuration from: ${process.cwd()}/.dev.env`);
+console.debug(
+  `Using environment configuration from: ${process.cwd()}/.dev.env`,
+);
 
 export const APP_CONFIGS = {
   DB: {
