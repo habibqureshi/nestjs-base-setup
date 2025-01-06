@@ -18,12 +18,13 @@ export class UsersService {
     }
     this.logger.log(`creating user ${JSON.stringify(createUser)}`);
     const newUser = this.userRepository.create(createUser);
-    this.logger.log(newUser);
+    this.logger.log(`user created successfully ${JSON.stringify(newUser)}`);
     return await this.userRepository.save(newUser, { reload: true });
   }
 
   async findAll(params: any): Promise<Array<User> | null> {
-    const { limit = 10, offset = 0, where = {} } = params;
+    const { limit = 10, offset = 0 } = params;
+    const where = { ...params.where, deleted: 0, enable: 1 };
     const [result, total] = await this.userRepository.findAndCount({
       where,
       skip: offset,

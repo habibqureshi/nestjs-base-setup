@@ -5,16 +5,14 @@ import {
   HttpStatus,
   Post,
   Res,
-  UseGuards,
+  Query,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Public } from 'src/config/decorator/public.route.decorator';
 import { User } from 'src/schemas/user.schema';
 import { CustomLoggerService } from '../logger/logger.service';
 import { UsersService } from './users.service';
 
 @Controller('users')
-@UseGuards(AuthGuard('jwt'))
 export class UsersController {
   constructor(
     readonly userService: UsersService,
@@ -22,8 +20,21 @@ export class UsersController {
   ) {}
 
   @Get()
-  async getAllUsers(@Res() response) {
-    const users: Array<User> = await this.userService.findAll({});
+  async getAllUsers(
+    @Res() response,
+    @Query('total') total: number = 10,
+    @Query('offset') offset: number = 0,
+    @Query('name') name: string,
+    @Query('email') email: string,
+  ) {
+    const users: Array<User> = await this.userService.findAll({
+      limit: total,
+      offset,
+      where: {
+        name,
+        email,
+      },
+    });
     return response.status(HttpStatus.OK).json({
       message: 'All users',
       user: users,
@@ -46,16 +57,10 @@ export class UsersController {
       let errorMessage = 'Error: User not created!';
       const MONGO_DUPLICATE_ENTRY_ERROR_CODE = 11000;
       const MYSQL_DUPLICATE_ENTRY_ERROR_CODE = 1062;
-      console.log(typeof err);
-      console.log(Object.keys(err));
-      console.log('Values:', Object.values(err));
-      console.log(err.errno);
-
       if (err.code && err.code == MONGO_DUPLICATE_ENTRY_ERROR_CODE)
         errorMessage = err.writeErrors[0].errmsg.split(':')[2];
       else if (err.errno && err.errno == MYSQL_DUPLICATE_ENTRY_ERROR_CODE)
         errorMessage = err.sqlMessage.split('for key')[0];
-
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: 400,
         message: errorMessage,

@@ -6,7 +6,6 @@ import { APP_CONFIGS } from 'src/config/app.config';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
-    console.log('auth stratergy init');
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -14,10 +13,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
   async validate(payload: any) {
-    console.log(`token validated ${JSON.stringify(payload)}`);
     const currentUser: any = {
-      email: payload.email,
-      userId: payload.id,
+      ...payload,
     };
     return currentUser;
   }

@@ -34,12 +34,14 @@ export class AuthService {
   }
 
   async login(user: IUser): Promise<any> {
-    this.logger.log(user);
-    const payload = { email: user.email, id: user, roles: user.roles };
+    this.logger.log(`logged in  user ${user}`);
+    const payload = {
+      id: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: getUserPermissions(user),
+    };
     const accessToken = this.jwtService.sign(payload);
-    // this.logger.log(
-    //   `validating token  ${JSON.stringify(await this.jwtStrategy.validate(payload))}`,
-    // );
     return {
       user: {
         name: user.name,
@@ -50,3 +52,17 @@ export class AuthService {
     };
   }
 }
+
+const getUserPermissions = (user: IUser) => {
+  const permissions = {};
+  user.roles.map((role) => {
+    role.permissions.map((permission) => {
+      permissions[permission.url] = {
+        roleId: role.id,
+        roleName: role.name,
+        permission,
+      };
+    });
+  });
+  return permissions;
+};

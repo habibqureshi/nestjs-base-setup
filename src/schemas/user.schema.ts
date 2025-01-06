@@ -38,7 +38,8 @@ export class User {
   })
   roles: Role[];
 
+  @Column({ type: 'boolean', nullable: false })
   enable: boolean;
-
+  @Column({ type: 'boolean', nullable: false })
   deleted: boolean;
 }

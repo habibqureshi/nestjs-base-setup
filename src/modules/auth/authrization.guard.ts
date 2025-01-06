@@ -16,25 +16,24 @@ export class AuthorizationGuard extends AuthGuard('jwt') {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
-    ]); // same thing we can do for protected routes as well
-    // console.log(context.getClass())
-    // console.log(context.getHandler().name)
-    if (isPublic) {
+    ]);
+    // if endpoint is public or user have permission for exact endpoint or user have super admin permission then is will allow to access
+    if (
+      isPublic ||
+      currentUser?.permissions[req.method + ':' + req.url] ||
+      currentUser?.permissions['*']
+    ) {
+      console.log(
+        'user have permission for this endpoint',
+        req.method + ':' + req.url,
+      );
       return true;
     } else {
-      // console.log(`current user in authrization guard 2 ${JSON.stringify(currentUser.userId.roles)}`)
-      //check user role and permission
+      console.log(
+        'user dont have permission for this endpoint',
+        req.method + ':' + req.url,
+      );
+      return false;
     }
-    return true;
-
-    //   const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-    //     context.getHandler(),
-    //     context.getClass(),
-    //   ]);
-    //   if (isPublic) {
-    //     return true;
-    //   }
-    //   console.log('return false')
-    //   return super.canActivate(context);
   }
 }
