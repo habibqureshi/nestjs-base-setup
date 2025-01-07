@@ -18,7 +18,12 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
   imports: [
     RequestContextModule,
     TypeOrmModule.forRoot(typeOrmConfig()),
-    ThrottlerModule.forRoot([{ttl : +APP_CONFIGS.RATE_LIMIT.TTL,limit : +APP_CONFIGS.RATE_LIMIT.LIMIT,}]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: +APP_CONFIGS.RATE_LIMIT.TTL,
+        limit: +APP_CONFIGS.RATE_LIMIT.LIMIT,
+      },
+    ]),
     UsersModule,
     AuthModule,
     LoggerModule,

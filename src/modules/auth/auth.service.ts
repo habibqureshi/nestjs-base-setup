@@ -18,7 +18,6 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly logger: CustomLoggerService,
     private readonly jwtService: JwtService,
-
   ) {}
 
   async validateUser(email: string, password: string): Promise<User> {
