@@ -6,6 +6,7 @@ This is a base project for nestjs it includes following features
 
 - Authentication with JWT
 - Authorization
+- githooks pre and post / eslinter 
 - Rate limiter
 - User / Role / Permission crud
 - Custom logger
@@ -75,12 +76,14 @@ Run container in background with env
 
 ## Custom logger output
 
-<img width="1025" alt="image" src="https://github.com/user-attachments/assets/0fa3311e-bf40-4074-95cd-2c980f3ebe0c" />
+<img width="1281" alt="image" src="https://github.com/user-attachments/assets/ac098d60-93f7-4e49-9a5b-cc5443f3df2f" />
+
 
 
 ## Folder structure
 
-![image](https://github.com/user-attachments/assets/090782e1-acc7-490b-9266-551b97c84884)
+<img width="255" alt="image" src="https://github.com/user-attachments/assets/737ac482-39e3-4bc0-81e3-f8e5bffb3f21" />
+
 
 ## Environment Variables
 
