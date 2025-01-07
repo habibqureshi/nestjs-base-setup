@@ -41,5 +41,10 @@ export const APP_CONFIGS = {
     SECRET: process.env.JWT_SECRET || 'MY_SECRET',
     TOKEN_EXPIRY: process.env.JWT_EXPIRY || '12h',
   },
+  RATE_LIMIT:{
+    TTL:process.env.RL_TTL || 60000,
+    LIMIT:process.env.RL_LIMIT || 100
+
+  },
   ENV: process.env.ENV || 'TEST',
 };

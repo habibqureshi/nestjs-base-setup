@@ -9,7 +9,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CustomLoggerService } from '../logger/logger.service';
-import { JwtStrategy } from './jwt.strategy';
 import { User } from 'src/schemas/user.schema';
 
 @Injectable()
@@ -19,7 +18,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly logger: CustomLoggerService,
     private readonly jwtService: JwtService,
-    private readonly jwtStrategy: JwtStrategy,
+
   ) {}
 
   async validateUser(email: string, password: string): Promise<User> {

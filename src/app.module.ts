@@ -12,10 +12,13 @@ import { PermissionModule } from './modules/permissions/permissions.module';
 import { typeOrmConfig } from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RequestIdMiddleware } from './config/middlewares/mw.request.id';
+import { APP_CONFIGS } from './config/app.config';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     RequestContextModule,
     TypeOrmModule.forRoot(typeOrmConfig()),
+    ThrottlerModule.forRoot([{ttl : +APP_CONFIGS.RATE_LIMIT.TTL,limit : +APP_CONFIGS.RATE_LIMIT.LIMIT,}]),
     UsersModule,
     AuthModule,
     LoggerModule,
@@ -31,6 +34,10 @@ import { RequestIdMiddleware } from './config/middlewares/mw.request.id';
     {
       provide: APP_GUARD,
       useClass: AuthorizationGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
