@@ -75,7 +75,8 @@ Run container in background with env
 
 ## Custom logger output
 
-![image](https://github.com/user-attachments/assets/add07161-523b-4969-8154-31c6cb421e97)
+<img width="1025" alt="image" src="https://github.com/user-attachments/assets/0fa3311e-bf40-4074-95cd-2c980f3ebe0c" />
+
 
 ## Folder structure
 
