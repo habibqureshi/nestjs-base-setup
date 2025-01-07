@@ -1,26 +1,45 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument } from 'mongoose';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Role } from './role.schema';
+import { IsEmail, IsNotEmpty } from 'class-validator';
 
-export type UserDocument = HydratedDocument<User>;
-
-@Schema()
+@Entity('users')
 export class User {
-  @Prop()
+  //use this for mongodb
+  // @ObjectIdColumn()
+  // id: string;
+
+  // use this for mysql
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @IsNotEmpty()
+  @Column({ type: 'varchar', length: 30, nullable: false })
   name: string;
 
-  @Prop()
+  @IsNotEmpty()
+  @Column({ type: 'varchar', length: 30, nullable: false })
   password: string;
 
-  @Prop({ unique: true, required: true })
+  @Column({ type: 'varchar', length: 50, nullable: false })
+  @IsEmail()
   email: string;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }] })
+  @ManyToMany(() => Role)
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'user_id' },
+    inverseJoinColumn: { name: 'role_id' },
+  })
   roles: Role[];
 
+  @Column({ type: 'boolean', nullable: false })
   enable: boolean;
-
+  @Column({ type: 'boolean', nullable: false })
   deleted: boolean;
 }
-
-export const UserSchema = SchemaFactory.createForClass(User);

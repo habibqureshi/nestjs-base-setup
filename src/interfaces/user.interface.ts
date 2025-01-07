@@ -1,11 +1,11 @@
 import { Document, Types } from 'mongoose';
-import { IRole } from './role.interface';
+import { Role } from 'src/schemas/role.schema';
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
   email: string;
-  roles: Array<string>;
+  roles: Array<Role>;
   deleted: boolean;
   enable: boolean;
   password: string;

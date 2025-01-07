@@ -1,38 +1,42 @@
 import {
-  Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
-  Logger,
   Post,
-  Res,
+  Body,
+  Put,
+  Param,
+  Delete,
+  Query,
 } from '@nestjs/common';
-import { CustomLoggerService } from '../logger/logger.service';
+import { Role } from 'src/schemas/role.schema';
 import { RoleService } from './roles.service';
 
 @Controller('roles')
 export class RolesController {
-  constructor(
-    private readonly roleService: RoleService,
-    private readonly logger: CustomLoggerService,
-  ) {}
+  constructor(private readonly roleService: RoleService) {}
 
-  @Get('/')
-  async GetAllRoles(@Res() response) {
-    try {
-      const allRoles = await this.roleService.getAll({});
-      return response.status(HttpStatus.OK).json({
-        message: 'Roles',
-        data: allRoles,
-      });
-    } catch (err) {
-      this.logger.log(err);
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: 400,
-        message: 'Error: User while getting Roles!',
-        error: 'Bad Request',
-      });
-    }
+  @Post()
+  async createRole(@Body() role: Partial<Role>) {
+    return this.roleService.create(role);
+  }
+
+  @Get()
+  async getRoles(@Query('name') name?: string) {
+    return this.roleService.findAll(name);
+  }
+
+  @Get(':id')
+  async getRoleDetail(@Param('id') id: string) {
+    return this.roleService.findById(id);
+  }
+
+  @Put(':id')
+  async updateRole(@Param('id') id: string, @Body() role: Partial<Role>) {
+    return this.roleService.update(id, role);
+  }
+
+  @Delete(':id')
+  async deleteRole(@Param('id') id: string) {
+    return this.roleService.delete(id);
   }
 }
