@@ -1,4 +1,4 @@
-# Base setup for fastapi
+# Base setup for NestJs
 
 This is a base project for nestjs it includes following features
 
