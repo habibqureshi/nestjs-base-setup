@@ -26,7 +26,7 @@ Go to the project directory
   cd nestjs-base-setup
 ```
 
-Python Version : `v23.5.0`
+Node Version : `v23.5.0`
 NestJs Version : `10.4.5`
 
 Install dependencies
