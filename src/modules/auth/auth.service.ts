@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CustomLoggerService } from '../logger/logger.service';
 import { User } from 'src/schemas/user.schema';
+import { APP_CONFIGS } from 'src/config/app.config';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +40,14 @@ export class AuthService {
       roles: user.roles,
       permissions: getUserPermissions(user),
     };
-    const accessToken = this.jwtService.sign(payload);
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        secret: APP_CONFIGS.JWT.REFRESH_SECRET,
+        expiresIn: APP_CONFIGS.JWT.REFRESH_EXPIRY,
+      }),
+    ]);
+
     return {
       user: {
         name: user.name,
@@ -47,6 +55,33 @@ export class AuthService {
         roles: user.roles,
       },
       accessToken,
+      refreshToken,
+    };
+  }
+
+  async refresh(user: any): Promise<any> {
+    this.logger.log(`Token refreshed using ${user.refreshToken}`);
+    const payload = {
+      id: user.id,
+      email: user.email,
+      roles: user.roles,
+      permissions: user.permissions,
+    };
+    const [accessToken, refreshTokenGenerated] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        secret: APP_CONFIGS.JWT.REFRESH_SECRET,
+        expiresIn: APP_CONFIGS.JWT.REFRESH_EXPIRY,
+      }),
+    ]);
+    return {
+      user: {
+        name: user.name,
+        email: user.email,
+        roles: user.roles,
+      },
+      accessToken,
+      refreshToken: refreshTokenGenerated,
     };
   }
 }
