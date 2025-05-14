@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_container
+    restart: always
+    environment:
+      POSTGRES_DB: loyalty
+      POSTGRES_USER: loyalty-user
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
+    volumes:
+      - loyalty_db_data:/var/lib/mysql
+      - ./base-setup.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+    networks:
+      - loyalty_net
+
+  # loyalty_backend:
+  #   build: .
+  #   container_name: loyalty_backend
+  #   command: npm run start:dev
+  #   depends_on:
+  #     - postgres
+  #   develop:
+  #     watch:
+  #       - action: sync
+  #         path: ./src
+  #         target: /usr/src/app/src
+  #         ignore:
+  #           - node_modules/
+  #       - action: rebuild
+  #         path: package.json
+  #   environment:
+  #     DB_TYPE: postgres
+  #     DB_HOST: postgres
+  #     DB_USER: loyalty-user
+  #     DB_PASSWORD: password
+  #     DB_NAME: loyalty
+  #     DB_PORT: '5432'
+  #   ports:
+  #     - '3000:3000'
+  #   networks:
+  #     - loyalty_net
+volumes:
+  loyalty_db_data:
+
+networks:
+  loyalty_net:
+    driver: bridge

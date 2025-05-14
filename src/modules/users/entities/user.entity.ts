@@ -1,23 +1,10 @@
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToMany,
-  JoinTable,
-} from 'typeorm';
-import { Role } from './role.schema';
+import { Column, Entity, ManyToMany, JoinTable } from 'typeorm';
 import { IsEmail, IsNotEmpty } from 'class-validator';
+import { Role } from 'src/modules/roles/entities/role.entity';
+import { BaseEntity } from 'src/common/base-entity';
 
 @Entity('users')
-export class User {
-  //use this for mongodb
-  // @ObjectIdColumn()
-  // id: string;
-
-  // use this for mysql
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class User extends BaseEntity {
   @IsNotEmpty()
   @Column({ type: 'varchar', length: 30, nullable: false })
   name: string;
@@ -37,9 +24,4 @@ export class User {
     inverseJoinColumn: { name: 'role_id' },
   })
   roles: Role[];
-
-  @Column({ type: 'boolean', nullable: false })
-  enable: boolean;
-  @Column({ type: 'boolean', nullable: false })
-  deleted: boolean;
 }

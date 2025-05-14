@@ -8,8 +8,8 @@ services:
       MYSQL_DATABASE: loyalty
       MYSQL_USER: loyalty-user
       MYSQL_PASSWORD: password
-    ports:
-      - '3306:3306'
+    # ports:
+    #   - '3306:3306'
     volumes:
       - loyalty_db_data:/var/lib/mysql
       - ./base-setup.sql:/docker-entrypoint-initdb.d/init.sql

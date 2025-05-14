@@ -9,8 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { CustomLoggerService } from '../logger/logger.service';
-import { User } from 'src/schemas/user.schema';
 import { APP_CONFIGS } from 'src/config/app.config';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -41,7 +41,9 @@ export class AuthService {
       permissions: getUserPermissions(user),
     };
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        expiresIn: APP_CONFIGS.JWT.TOKEN_EXPIRY,
+      }),
       this.jwtService.signAsync(payload, {
         secret: APP_CONFIGS.JWT.REFRESH_SECRET,
         expiresIn: APP_CONFIGS.JWT.REFRESH_EXPIRY,

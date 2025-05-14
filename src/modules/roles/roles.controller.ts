@@ -8,8 +8,8 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { Role } from 'src/schemas/role.schema';
 import { RoleService } from './roles.service';
+import { Role } from './entities/role.entity';
 
 @Controller('roles')
 export class RolesController {
@@ -26,12 +26,12 @@ export class RolesController {
   }
 
   @Get(':id')
-  async getRoleDetail(@Param('id') id: string) {
+  async getRoleDetail(@Param('id') id: number) {
     return this.roleService.findById(id);
   }
 
   @Put(':id')
-  async updateRole(@Param('id') id: string, @Body() role: Partial<Role>) {
+  async updateRole(@Param('id') id: number, @Body() role: Partial<Role>) {
     return this.roleService.update(id, role);
   }
 

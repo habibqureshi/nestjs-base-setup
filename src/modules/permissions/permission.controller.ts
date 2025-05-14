@@ -7,8 +7,8 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { Permission } from 'src/schemas/permission.schema';
 import { PermissionService } from './permission.service';
+import { Permission } from './entities/permission.entity';
 
 @Controller('permissions')
 export class PermissionController {
@@ -25,13 +25,13 @@ export class PermissionController {
   }
 
   @Get(':id')
-  async getPermissionDetail(@Param('id') id: string) {
+  async getPermissionDetail(@Param('id') id: number) {
     return this.permissionService.findById(id);
   }
 
   @Put(':id')
   async updatePermission(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() permission: Partial<Permission>,
   ) {
     return this.permissionService.update(id, permission);

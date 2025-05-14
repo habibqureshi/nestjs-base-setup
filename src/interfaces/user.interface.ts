@@ -1,5 +1,5 @@
 import { Document, Types } from 'mongoose';
-import { Role } from 'src/schemas/role.schema';
+import { Role } from 'src/modules/roles/entities/role.entity';
 
 export interface IUser extends Document {
   _id: Types.ObjectId;

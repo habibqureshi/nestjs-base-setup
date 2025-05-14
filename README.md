@@ -1,6 +1,6 @@
 # Base setup for NestJs
 
-This is a base project for Kiss Loyalty it includes following features
+This is a base project for nestjs it includes following features
 
 ## Features
 
@@ -31,10 +31,18 @@ NestJs Version : `10.4.5`
 
 Install [Docker](https://docs.docker.com/engine/install/ubuntu/)
 
-Run Server
+Create **.env** file at root of project. See .env.example
+
+Start Database server
 
 ```bash
-  docker compose up -d
+  npm run docker:dev
+```
+
+Start Server
+
+```bash
+  npm run start:dev
 ```
 
 SQL schema
@@ -57,17 +65,27 @@ All environment variables are defined in app.config.js with default values. Thes
 
 `DB_TYPE`
 
-`MYSQL_HOST`
+`DB_HOST`
 
-`MYSQL_USER`
+`DB_PORT`
 
-`MYSQL_DB_NAME`
+`DB_USER`
+
+`DB_PASSWORD`
+
+`DB_NAME`
 
 `DB_URL`
+
+`DB_SYNCHRONIZE`
 
 `JWT_SECRET`
 
 `JWT_EXPIRY`
+
+`JWT_REFRESH_SECRET`
+
+`JWT_REFRESH_EXPIRY`
 
 `RL_TTL`
 

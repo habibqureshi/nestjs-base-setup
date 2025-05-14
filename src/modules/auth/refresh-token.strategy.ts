@@ -13,7 +13,6 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: APP_CONFIGS.JWT.REFRESH_SECRET,
-      signOptions: { expiresIn: APP_CONFIGS.JWT.REFRESH_EXPIRY },
       passReqToCallback: true,
     });
   }

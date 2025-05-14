@@ -8,9 +8,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { Public } from 'src/config/decorator/public.route.decorator';
-import { User } from 'src/schemas/user.schema';
 import { CustomLoggerService } from '../logger/logger.service';
 import { UsersService } from './users.service';
+import { User } from './entities/user.entity';
+import { ApiSecurity } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +20,7 @@ export class UsersController {
     private readonly logger: CustomLoggerService,
   ) {}
 
+  @ApiSecurity('bearer')
   @Get()
   async getAllUsers(
     @Res() response,

@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { User } from 'src/schemas/user.schema';
 import { CustomLoggerService } from '../logger/logger.service';
 import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
