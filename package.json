@@ -1,5 +1,5 @@
 {
-  "name": "be-traslation",
+  "name": "loyalty-be",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -19,11 +19,11 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prepare": "git config --local core.hooksPath .githooks/ && chmod ug+x .githooks/*",
+    "prepare": "git rev-parse --is-inside-work-tree > /dev/null 2>&1 && git config --local core.hooksPath .githooks/ && chmod ug+x .githooks/* || echo \"Not inside a Git repository.\"",
     "docker:dev": "docker compose -f dev-docker-compose.yml up",
     "docker:dev:stop": "docker compose -f dev-docker-compose.yml down",
     "docker:prod": "docker compose up -d",
-    "typeorm": "env-cmd -f ./.env ts-node --project tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm": "ts-node --project tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "yarn run typeorm -d ./src/db/datasource.ts migration:generate ./src/db/migrations/$MIGRATION",
     "migration:create": "yarn run typeorm migration:create ./src/db/migrations/$MIGRATION",
     "migration:revert": "yarn run typeorm -d ./src/db/datasource.ts migration:revert",
@@ -44,7 +44,6 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "dotenv": "^16.5.0",
-    "env-cmd": "^10.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.2",
@@ -100,6 +99,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "packageManager": "yarn@4.9.1"
+  }
 }

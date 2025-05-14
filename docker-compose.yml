@@ -11,7 +11,7 @@ services:
     # ports:
     #   - '3306:3306'
     volumes:
-      - loyalty_db_data:/var/lib/mysql
+      - loyalty_db_data:/var/lib/postgresql/data
       - ./base-setup.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - loyalty_net
@@ -22,11 +22,12 @@ services:
     depends_on:
       - mysql
     environment:
-      DB_TYPE: mysql
-      MYSQL_HOST: mysql
-      MYSQL_USER: loyalty-user
-      MYSQL_PASSWORD: password
-      MYSQL_DB_NAME: loyalty
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_USER: loyalty-user
+      DB_PASSWORD: password
+      DB_NAME: loyalty
+      DB_PORT: '5432'
     ports:
       - '3000:3000'
     networks:

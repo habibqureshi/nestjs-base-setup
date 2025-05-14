@@ -10,7 +10,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - loyalty_db_data:/var/lib/mysql
+      - loyalty_db_data:/var/lib/postgresql/data
       - ./base-setup.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     networks:
       - loyalty_net
