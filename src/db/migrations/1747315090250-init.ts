@@ -44,7 +44,7 @@ export class Init1747315090250 implements MigrationInterface {
       `ALTER TABLE "user_roles" ADD CONSTRAINT "FK_b23c65e50a758245a33ee35fda1" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE`,
     );
     await queryRunner.query(
-      `INSERT INTO permissions (id, name, url, regex) VALUES (1, 'root', '*',"*")`,
+      `INSERT INTO permissions (id, name, url, regex) VALUES (1, 'root', '*', '*')`,
     );
     await queryRunner.query(
       `INSERT INTO roles (id, name, enable, deleted) VALUES (1, 'root', TRUE, FALSE)`,
