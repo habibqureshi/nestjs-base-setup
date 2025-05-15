@@ -6,14 +6,14 @@ import { BaseEntity } from 'src/common/base-entity';
 @Entity('users')
 export class User extends BaseEntity {
   @IsNotEmpty()
-  @Column({ type: 'varchar', length: 30, nullable: false })
+  @Column({ type: 'varchar', length: 100, nullable: false })
   name: string;
 
   @IsNotEmpty()
-  @Column({ type: 'varchar', length: 30, nullable: false })
+  @Column({ type: 'varchar', length: 100, nullable: false })
   password: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: false })
+  @Column({ type: 'varchar', length: 100, nullable: false })
   @IsEmail()
   email: string;
 
