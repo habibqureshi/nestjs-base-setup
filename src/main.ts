@@ -19,9 +19,10 @@ async function bootstrap() {
     .addTag('BE')
     .addBearerAuth()
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, documentFactory, {
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
+    jsonDocumentUrl: 'swagger.json',
   });
   await app.listen(3000);
 }

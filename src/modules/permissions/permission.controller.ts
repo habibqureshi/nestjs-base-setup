@@ -9,13 +9,15 @@ import {
 } from '@nestjs/common';
 import { PermissionService } from './permission.service';
 import { Permission } from './entities/permission.entity';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('permissions')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   @Post()
-  async createPermission(@Body() permission: Partial<Permission>) {
+  async createPermission(@Body() permission: Permission) {
     return this.permissionService.create(permission);
   }
 

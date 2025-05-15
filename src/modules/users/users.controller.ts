@@ -6,13 +6,16 @@ import {
   Post,
   Res,
   Query,
+  ConflictException,
 } from '@nestjs/common';
-import { Public } from 'src/config/decorator/public.route.decorator';
 import { CustomLoggerService } from '../logger/logger.service';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
-import { ApiSecurity } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { Response } from 'express';
+import { QueryFailedError } from 'typeorm';
 
+@ApiBearerAuth()
 @Controller('users')
 export class UsersController {
   constructor(
@@ -20,14 +23,13 @@ export class UsersController {
     private readonly logger: CustomLoggerService,
   ) {}
 
-  @ApiSecurity('bearer')
   @Get()
   async getAllUsers(
-    @Res() response,
+    @Res() response: Response,
     @Query('total') total: number = 10,
     @Query('offset') offset: number = 0,
-    @Query('name') name: string,
-    @Query('email') email: string,
+    @Query('name') name?: string,
+    @Query('email') email?: string,
   ) {
     const users: Array<User> = await this.userService.findAll({
       limit: total,
@@ -43,9 +45,8 @@ export class UsersController {
     });
   }
 
-  @Public()
   @Post()
-  async addUser(@Res() response, @Body() userDTO: User) {
+  async addUser(@Res() response: Response, @Body() userDTO: User) {
     try {
       this.logger.log(`user data ${JSON.stringify(userDTO)}`);
       const newUser = await this.userService.create(userDTO);
@@ -56,13 +57,21 @@ export class UsersController {
       });
     } catch (err) {
       this.logger.log(`err ${err}`);
-      let errorMessage = 'Error: User not created!';
-      const MONGO_DUPLICATE_ENTRY_ERROR_CODE = 11000;
-      const MYSQL_DUPLICATE_ENTRY_ERROR_CODE = 1062;
-      if (err.code && err.code == MONGO_DUPLICATE_ENTRY_ERROR_CODE)
-        errorMessage = err.writeErrors[0].errmsg.split(':')[2];
-      else if (err.errno && err.errno == MYSQL_DUPLICATE_ENTRY_ERROR_CODE)
-        errorMessage = err.sqlMessage.split('for key')[0];
+      const errorMessage = 'Error: User not created!';
+      if (err instanceof QueryFailedError) {
+        const error = err as QueryFailedError & {
+          code?: string;
+          errno?: number;
+        };
+        if (error.code === '23505') {
+          throw new ConflictException('Duplicate entry');
+        }
+        if (error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
+          throw new ConflictException('Duplicate entry');
+        }
+      }
+      if ((err as any).code == 11000)
+        throw new ConflictException('Already exist!');
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: 400,
         message: errorMessage,

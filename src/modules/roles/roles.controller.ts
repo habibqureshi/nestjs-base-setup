@@ -10,19 +10,23 @@ import {
 } from '@nestjs/common';
 import { RoleService } from './roles.service';
 import { Role } from './entities/role.entity';
+import { CreateRoleDto } from './dto/create-role.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { FilterRoleDto } from './dto/filter-role.dto';
 
+@ApiBearerAuth()
 @Controller('roles')
 export class RolesController {
   constructor(private readonly roleService: RoleService) {}
 
   @Post()
-  async createRole(@Body() role: Partial<Role>) {
+  async createRole(@Body() role: CreateRoleDto) {
     return this.roleService.create(role);
   }
 
   @Get()
-  async getRoles(@Query('name') name?: string) {
-    return this.roleService.findAll(name);
+  async getRoles(@Query() filters: FilterRoleDto): Promise<Role[]> {
+    return this.roleService.findAll(filters.name);
   }
 
   @Get(':id')
