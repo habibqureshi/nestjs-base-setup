@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RedisService } from './redis.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { APP_CONFIGS } from 'src/config/app.config';
 
 describe('RedisService', () => {
   let service: RedisService;
-  let cacheManager: Cache;
 
   const mockCacheManager = {
     get: jest.fn(),
@@ -27,7 +25,6 @@ describe('RedisService', () => {
     }).compile();
 
     service = module.get<RedisService>(RedisService);
-    cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
 
   afterEach(() => {
