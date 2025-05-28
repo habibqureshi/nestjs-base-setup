@@ -5,8 +5,11 @@ import { UserZod } from './user.types';
 extendZodWithOpenApi(z);
 
 export const LoginSchema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(1, 'Required'),
+  email: z
+    .string()
+    .email('Invalid email')
+    .openapi({ example: 'admin@example.com' }),
+  password: z.string().min(1, 'Required').openapi({ example: '12345' }),
 });
 export type LoginSchema = z.infer<typeof LoginSchema>;
 

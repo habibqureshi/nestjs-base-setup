@@ -6,6 +6,7 @@ import {
 } from 'src/common/types/auth.types';
 import {
   BadRequestError,
+  UnauthorizedError,
   UnprocessableError,
 } from 'src/common/types/error-responses.types';
 import { z } from 'zod';
@@ -26,6 +27,7 @@ export const authContract = c.router(
         200: TokenResponseSchema,
         400: BadRequestError,
         422: UnprocessableError,
+        401: UnauthorizedError,
       },
     },
     refresh: {
