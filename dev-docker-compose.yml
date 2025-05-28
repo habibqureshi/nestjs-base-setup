@@ -4,16 +4,25 @@ services:
     container_name: postgres_container
     restart: always
     environment:
-      POSTGRES_DB: loyalty
-      POSTGRES_USER: loyalty-user
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
       - '5432:5432'
     volumes:
-      - loyalty_db_data:/var/lib/postgresql/data
+      - app_db_data:/var/lib/postgresql/data
       - ./base-setup.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     networks:
-      - loyalty_net
+      - app_net
+
+  redis:
+    image: redis:alpine
+    container_name: redis_container
+    restart: always
+    ports:
+      - '6380:6379'
+    networks:
+      - app_net
 
   # loyalty_backend:
   #   build: .
@@ -42,8 +51,8 @@ services:
   #   networks:
   #     - loyalty_net
 volumes:
-  loyalty_db_data:
+  app_db_data:
 
 networks:
-  loyalty_net:
+  app_net:
     driver: bridge

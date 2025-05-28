@@ -14,7 +14,15 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => {
     migrations: [__dirname + '/../db/migrations/**/*{.ts,.js}'],
   };
 
-  let dbOptions: DataSourceOptions;
+  let dbOptions: DataSourceOptions = {
+    type: 'mysql',
+    host: APP_CONFIGS.DB.DB_HOST,
+    port: APP_CONFIGS.DB.DB_PORT,
+    username: APP_CONFIGS.DB.DB_USER,
+    database: APP_CONFIGS.DB.DB_NAME,
+    password: APP_CONFIGS.DB.DB_PASSWORD,
+    ...commonOptions,
+  } as MysqlConnectionOptions;
 
   switch (DB_TYPE) {
     case 'postgres':

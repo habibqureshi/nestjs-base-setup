@@ -1,46 +1,75 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Put,
-  Param,
-  Delete,
-} from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { PermissionService } from './permission.service';
-import { Permission } from './entities/permission.entity';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { TsRestHandler, tsRestHandler } from '@ts-rest/nest';
+import { api } from 'src/contracts';
 
-@ApiBearerAuth()
-@Controller('permissions')
+@Controller()
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
-  @Post()
-  async createPermission(@Body() permission: Permission) {
-    return this.permissionService.create(permission);
+  @TsRestHandler(api.permission.getPermissions)
+  async getPermissions() {
+    return tsRestHandler(api.permission.getPermissions, async ({ query }) => {
+      const result = await this.permissionService.findManyWithPagination(
+        {},
+        query,
+      );
+      return {
+        status: 200,
+        body: result,
+      };
+    });
   }
 
-  @Get()
-  async getAllPermissions() {
-    return this.permissionService.findAll();
+  @TsRestHandler(api.permission.getPermission)
+  async getPermission() {
+    return tsRestHandler(api.permission.getPermission, async ({ params }) => {
+      const result = await this.permissionService.findById(params.id);
+      return {
+        status: 200,
+        body: result,
+      };
+    });
   }
 
-  @Get(':id')
-  async getPermissionDetail(@Param('id') id: number) {
-    return this.permissionService.findById(id);
+  @TsRestHandler(api.permission.createPermission)
+  async createPermission() {
+    return tsRestHandler(api.permission.createPermission, async ({ body }) => {
+      const result = await this.permissionService.create(body);
+      return {
+        status: 200,
+        body: result,
+      };
+    });
   }
 
-  @Put(':id')
-  async updatePermission(
-    @Param('id') id: number,
-    @Body() permission: Partial<Permission>,
-  ) {
-    return this.permissionService.update(id, permission);
+  @TsRestHandler(api.permission.updatePermission)
+  async updatePermission() {
+    return tsRestHandler(
+      api.permission.updatePermission,
+      async ({ params, body }) => {
+        const result = await this.permissionService.update(params.id, body);
+        return {
+          status: 200,
+          body: result,
+        };
+      },
+    );
   }
 
-  @Delete(':id')
-  async deletePermission(@Param('id') id: string) {
-    return this.permissionService.delete(id);
+  @TsRestHandler(api.permission.deletePermission)
+  async deletePermission() {
+    return tsRestHandler(
+      api.permission.deletePermission,
+      async ({ params }) => {
+        await this.permissionService.delete(params.id.toString());
+        return {
+          status: 200,
+          body: {
+            message: 'Permission deleted successfully',
+          },
+        };
+      },
+    );
   }
 }

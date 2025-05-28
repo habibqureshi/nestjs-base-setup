@@ -1,6 +1,9 @@
 import {
+  AfterInsert,
+  AfterLoad,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   PrimaryGeneratedColumn,
   BaseEntity as TypeORMBaseEntity,
   UpdateDateColumn,
@@ -30,4 +33,19 @@ export class BaseEntity extends TypeORMBaseEntity {
 
   @Column({ type: 'boolean', default: false })
   deleted: boolean;
+
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  deletedAt: Date | null;
+
+  __entity?: string;
+
+  @AfterLoad()
+  @AfterInsert()
+  setEntityName(): void {
+    this.__entity = this.constructor.name;
+  }
 }

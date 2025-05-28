@@ -1,27 +1,37 @@
-import { Controller, Request, Post, UseGuards } from '@nestjs/common';
-import { Public } from 'src/config/decorator/public.route.decorator';
+import { Controller, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './local-auth.guard';
-import { JwtRefreshTokenGuard } from './refresh-token.guard';
-import { LoginDto } from './dto/login.dto';
-import { ApiBody } from '@nestjs/swagger';
+import { JwtRefreshTokenGuard } from './guards/refresh-token.guard';
+import { tsRestHandler, TsRestHandler } from '@ts-rest/nest';
+import { api } from 'src/contracts';
+import { UserReq } from 'src/common/decorators/user.decorator';
+import { IUser } from 'src/interfaces/user.interface';
+import { ServerInferRequest } from '@ts-rest/core';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { ClientAuthzGuard } from './guards/client-authz.guard';
+import { Public } from 'src/config/decorator/public.route.decorator';
 
-@Controller('auth')
+type LoginReq = ServerInferRequest<typeof api.auth.login>;
+
+@Controller()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Public()
-  @UseGuards(LocalAuthGuard)
-  @Post('/login')
-  @ApiBody({ type: LoginDto })
-  async login(@Request() req) {
-    return this.authService.login(req.user);
+  @UseGuards(ClientAuthzGuard, LocalAuthGuard)
+  @TsRestHandler(api.auth.login)
+  async login(@UserReq() user: IUser) {
+    return tsRestHandler(api.auth.login, async (_: LoginReq) => {
+      const response = await this.authService.login(user);
+      return { status: HttpStatus.OK, body: response };
+    });
   }
 
-  @Public()
   @UseGuards(JwtRefreshTokenGuard)
-  @Post('/refresh')
-  async refresh(@Request() req) {
-    return await this.authService.refresh(req.user);
+  @TsRestHandler(api.auth.refresh)
+  async refresh(@UserReq() user: IUser) {
+    return tsRestHandler(api.auth.refresh, async () => {
+      const response = await this.authService.refresh(user);
+      return { status: HttpStatus.OK, body: response };
+    });
   }
 }

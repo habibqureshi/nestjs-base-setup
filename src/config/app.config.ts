@@ -4,29 +4,35 @@ dotenv.config({
   path: process.cwd() + '/.env',
 });
 
-console.debug(`Using environment configuration from: ${process.cwd()}/.env`);
-
 export const APP_CONFIGS = {
   DB: {
-    TYPE: process.env.DB_TYPE || 'mongodb', // 'mysql' or 'mongodb'
-    DB_HOST: process.env.DB_HOST || 'localhost', // MySQL host
-    DB_PORT: Number(process.env.DB_PORT) || 3306, // MySQL port
-    DB_USER: process.env.DB_USER || 'root', // MySQL user
-    DB_PASSWORD: process.env.DB_PASSWORD || '', // MySQL password
-    DB_NAME: process.env.DB_NAME || 'test', // MySQL database name
-    MONGODB_URL: process.env.DB_URL || 'mongodb://localhost:27017', // MongoDB URL
-    MONGODB_NAME: process.env.DB_NAME || 'test', // MongoDB database name
-    SYNCHRONIZE: process.env.DB_SYNCHRONIZE === 'true', // Synchronization option for TypeORM
+    TYPE: process.env['DB_TYPE'] || 'postgres',
+    DB_HOST: process.env['DB_HOST'] || 'localhost',
+    DB_PORT: parseInt(process.env['DB_PORT']) || 5432,
+    DB_USER: process.env['DB_USER'] || 'postgres',
+    DB_PASSWORD: process.env['DB_PASSWORD'] || 'postgres',
+    DB_NAME: process.env['DB_NAME'] || 'postgres',
+    MONGODB_URL: process.env['DB_URL'] || 'mongodb://localhost:27017',
+    MONGODB_NAME: process.env['DB_NAME'] || 'test',
+    SYNCHRONIZE: process.env['DB_SYNCHRONIZE'] === 'true',
   },
   JWT: {
-    SECRET: process.env.JWT_SECRET || 'MY_SECRET',
-    TOKEN_EXPIRY: process.env.JWT_EXPIRY || '12h',
-    REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || 'MY_REFRESH_SECRET',
-    REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY || '7d',
+    SECRET: process.env['JWT_SECRET'] || 'your-secret-key',
+    TOKEN_EXPIRY: process.env['JWT_TOKEN_EXPIRY'] || '1h',
+    REFRESH_SECRET:
+      process.env['JWT_REFRESH_SECRET'] || 'your-refresh-secret-key',
+    REFRESH_EXPIRY: process.env['JWT_REFRESH_EXPIRY'] || '7d',
   },
   RATE_LIMIT: {
-    TTL: process.env.RL_TTL || 60000,
-    LIMIT: process.env.RL_LIMIT || 100,
+    TTL: process.env['RATE_LIMIT_TTL'] || 60,
+    LIMIT: process.env['RATE_LIMIT_LIMIT'] || 10,
   },
-  ENV: process.env.ENV || 'TEST',
+  REDIS: {
+    USERNAME: process.env['REDIS_USERNAME'] || '',
+    PASSWORD: process.env['REDIS_PASSWORD'] || '',
+    HOST: process.env['REDIS_HOST'] || 'localhost',
+    PORT: parseInt(process.env['REDIS_PORT']) || 6379,
+    USER_TTL: parseInt(process.env['REDIS_USER_TTL']) || 60 * 60 * 24 * 1000, // 1 hour in seconds
+  },
+  ENV: process.env['ENV'] || 'TEST',
 };
