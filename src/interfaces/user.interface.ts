@@ -1,12 +1,11 @@
-import { Document, Types } from 'mongoose';
-import { Role } from 'src/schemas/role.schema';
+import { Permission } from 'src/modules/permissions/entities/permission.entity';
 
-export interface IUser extends Document {
-  _id: Types.ObjectId;
+export interface IUser {
+  id: number;
   name: string;
   email: string;
-  roles: Array<Role>;
-  deleted: boolean;
-  enable: boolean;
-  password: string;
+  permissions: Record<
+    string,
+    { roleId: number; roleName: string; permission: Permission }
+  >;
 }

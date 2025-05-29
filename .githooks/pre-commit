@@ -1,7 +1,13 @@
 #!/bin/bash
-npm run lint
+yarn lint
 if [ $? -ne 0 ]; then
     exit 1
 fi
 
-npm run format
+yarn format
+
+yarn test:cov
+
+if [ $? -ne 0 ]; then
+    exit 2
+fi

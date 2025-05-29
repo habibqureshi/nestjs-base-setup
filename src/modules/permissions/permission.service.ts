@@ -1,26 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Permission } from 'src/schemas/permission.schema';
 import { Repository } from 'typeorm';
+import { Permission } from './entities/permission.entity';
+import { BaseService } from 'src/common/base.service';
 
 @Injectable()
-export class PermissionService {
+export class PermissionService extends BaseService<Permission> {
   constructor(
     @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-  ) {}
+    private readonly repo: Repository<Permission>,
+  ) {
+    super(repo);
+  }
 
   async create(permission: Partial<Permission>): Promise<Permission> {
-    const newPermission = this.permissionRepository.create(permission);
-    return this.permissionRepository.save(newPermission);
+    return this.save(permission);
   }
 
   async findAll(): Promise<Permission[]> {
-    return this.permissionRepository.find();
+    return this.repo.find();
   }
 
-  async findById(id: string): Promise<Permission> {
-    const permission = await this.permissionRepository.findOneBy({ id });
+  async findById(id: number): Promise<Permission> {
+    const permission = await this.findOneOrNull({ where: { id } });
     if (!permission) {
       throw new NotFoundException('Permission not found');
     }
@@ -28,11 +30,11 @@ export class PermissionService {
   }
 
   async update(
-    id: string,
+    id: number,
     permission: Partial<Permission>,
   ): Promise<Permission> {
-    await this.permissionRepository.update(id, permission);
-    const updatedPermission = await this.permissionRepository.findOneBy({ id });
+    await this.repo.update(id, permission);
+    const updatedPermission = await this.repo.findOneBy({ id });
     if (!updatedPermission) {
       throw new NotFoundException('Permission not found');
     }
@@ -40,7 +42,7 @@ export class PermissionService {
   }
 
   async delete(id: string): Promise<void> {
-    const result = await this.permissionRepository.delete(id);
+    const result = await this.repo.delete(id);
     if (!result.affected) {
       throw new NotFoundException('Permission not found');
     }

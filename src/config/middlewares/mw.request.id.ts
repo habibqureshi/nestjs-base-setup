@@ -4,9 +4,8 @@ import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    // console.log('middleware called',req.headers.authorization);
-    req['requestId'] = uuidv4(); // Attach a unique ID to the request object
+  use(req: Request, _: Response, next: NextFunction): void {
+    req['requestId'] = uuidv4();
     next();
   }
 }

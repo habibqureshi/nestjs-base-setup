@@ -1,24 +1,31 @@
 import { Injectable, Logger, Scope } from '@nestjs/common';
+import { Request } from 'express';
 import { RequestContext } from 'nestjs-request-context';
+import { IUser } from 'src/interfaces/user.interface';
 
 @Injectable({ scope: Scope.REQUEST })
 export class CustomLoggerService extends Logger {
-  log(message: string | object) {
+  override log(message: string | object) {
     const timestamp = new Date().toISOString();
     const filename = this.getFilename();
     const lineNumber = this.getLineNumber();
-    const request = this.getRequest();
+    const request: Request = this.getRequest();
     const requestId = request['requestId'] || '0';
     const ipAddress = request['ip'] || 'No IP';
-    const user = request['user'] || 'System';
+    const user: IUser | Partial<IUser> =
+      (request['user'] as IUser) ||
+      ({
+        name: 'System',
+        email: '-',
+      } as Partial<IUser>);
     const messageToLogged =
       typeof message == 'string' ? message : JSON.stringify(message);
-    // super.log(`[${timestamp}] [${filename}:${lineNumber}] [${username}] ${message}`, context);
+
     super.log(
       `${requestId} ${ipAddress} ${user.email} ${timestamp} ${filename} : ${lineNumber}   ${messageToLogged}`,
     );
   }
-  error(message: string, trace: string, context?: string) {
+  override error(message: string, trace: string, context?: string) {
     const timestamp = new Date().toISOString();
     const filename = this.getFilename();
     const lineNumber = this.getLineNumber();
@@ -38,7 +45,7 @@ export class CustomLoggerService extends Logger {
 
   private getFilename(): string {
     const error = new Error();
-    const stack = error.stack?.split('\n')[3].trim() || '';
+    const stack = error.stack?.split('\n')[3]?.trim() || '';
     const filename = stack.substring(
       stack.lastIndexOf('/') + 1,
       stack.indexOf(':'),
@@ -48,7 +55,7 @@ export class CustomLoggerService extends Logger {
 
   private getLineNumber(): string {
     const error = new Error();
-    const stack = error.stack?.split('\n')[3].trim() || '';
+    const stack = error.stack?.split('\n')[3]?.trim() || '';
     const lineNumber = stack.substring(
       stack.lastIndexOf(':') + 1,
       stack.lastIndexOf(')'),

@@ -1,36 +1,66 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { APP_CONFIGS } from './app.config';
-import { Logger } from '@nestjs/common';
-
-const logger = new Logger('DatabaseConfig'); // Create a new Logger instance for database configuration
+import { DataSourceOptions } from 'typeorm';
+import { MongoConnectionOptions } from 'typeorm/driver/mongodb/MongoConnectionOptions';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
+import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 
 export const typeOrmConfig = (): TypeOrmModuleOptions => {
-  const isMySQL = APP_CONFIGS.DB.TYPE === 'mysql';
+  const DB_TYPE = APP_CONFIGS.DB.TYPE || 'mysql';
+  const commonOptions: Partial<DataSourceOptions> = {
+    synchronize: APP_CONFIGS.DB.SYNCHRONIZE,
+    logging: false,
+    entities: [__dirname + '/../**/entities/*.entity{.ts,.js}'],
+    migrations: [__dirname + '/../db/migrations/**/*{.ts,.js}'],
+  };
 
-  // Log the connection information
-  if (isMySQL) {
-    logger.log(`Connecting to MySQL with the following credentials:
-      Host: ${APP_CONFIGS.DB.MYSQL_HOST}
-      Port: ${APP_CONFIGS.DB.MYSQL_PORT}
-      Database: ${APP_CONFIGS.DB.MYSQL_NAME}`);
-  } else {
-    logger.log(`Connecting to MongoDB with the following credentials:
-      URL: ${APP_CONFIGS.DB.MONGODB_URL}
-      Database: ${APP_CONFIGS.DB.MONGODB_NAME}`);
+  let dbOptions: DataSourceOptions = {
+    type: 'mysql',
+    host: APP_CONFIGS.DB.DB_HOST,
+    port: APP_CONFIGS.DB.DB_PORT,
+    username: APP_CONFIGS.DB.DB_USER,
+    database: APP_CONFIGS.DB.DB_NAME,
+    password: APP_CONFIGS.DB.DB_PASSWORD,
+    ...commonOptions,
+  } as MysqlConnectionOptions;
+
+  switch (DB_TYPE) {
+    case 'postgres':
+      dbOptions = {
+        type: DB_TYPE,
+        host: APP_CONFIGS.DB.DB_HOST,
+        port: APP_CONFIGS.DB.DB_PORT,
+        username: APP_CONFIGS.DB.DB_USER,
+        database: APP_CONFIGS.DB.DB_NAME,
+        password: APP_CONFIGS.DB.DB_PASSWORD,
+        ...commonOptions,
+      } as PostgresConnectionOptions;
+      break;
+    case 'mysql':
+      dbOptions = {
+        type: DB_TYPE,
+        host: APP_CONFIGS.DB.DB_HOST,
+        port: APP_CONFIGS.DB.DB_PORT,
+        username: APP_CONFIGS.DB.DB_USER,
+        database: APP_CONFIGS.DB.DB_NAME,
+        password: APP_CONFIGS.DB.DB_PASSWORD,
+        ...commonOptions,
+      } as MysqlConnectionOptions;
+      break;
+    case 'mongodb':
+      dbOptions = {
+        type: DB_TYPE,
+        url: APP_CONFIGS.DB.MONGODB_URL,
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        database: APP_CONFIGS.DB.MONGODB_NAME,
+        entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      } as MongoConnectionOptions;
+      break;
+
+    default:
+      break;
   }
 
-  return {
-    type: isMySQL ? 'mysql' : 'mongodb',
-    host: isMySQL ? APP_CONFIGS.DB.MYSQL_HOST : undefined, // Use MySQL host; undefined for MongoDB
-    port: isMySQL ? APP_CONFIGS.DB.MYSQL_PORT : undefined, // Use MySQL port; undefined for MongoDB
-    username: isMySQL ? APP_CONFIGS.DB.MYSQL_USER : undefined, // Use MySQL user; undefined for MongoDB
-    password: isMySQL ? APP_CONFIGS.DB.MYSQL_PASSWORD : undefined, // Use MySQL password; undefined for MongoDB
-    database: isMySQL ? APP_CONFIGS.DB.MYSQL_NAME : APP_CONFIGS.DB.MONGODB_NAME, // Set appropriate database name
-    url: isMySQL ? undefined : APP_CONFIGS.DB.MONGODB_URL, // Use MongoDB URL if applicable
-    synchronize: APP_CONFIGS.DB.SYNCHRONIZE, // Synchronization option for TypeORM
-    entities: [__dirname + '/../**/*.schema{.ts,.js}'], // Entities location
-    useUnifiedTopology: true, // MongoDB specific option
-    ...(isMySQL ? {} : { useNewUrlParser: true }), // MongoDB specific option
-    logging: true,
-  };
+  return dbOptions;
 };
