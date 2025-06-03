@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Scope } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
@@ -9,11 +9,13 @@ import { APP_CONFIGS } from 'src/config/app.config';
 import { JwtRefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { BasicStrategy } from './strategies/basic.strategy';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthorizationGuard } from './guards/authrization.guard';
 import { RedisModule } from '../redis/redis.module';
 import { AppClientModule } from '../app-client/app-client.module';
+import { BearerTokenInterceptor } from 'src/config/interceptors/bearer-token.interceptor';
+import { UserLoginModule } from '../user-login/user-login.module';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { AppClientModule } from '../app-client/app-client.module';
     UsersModule,
     RedisModule,
     AppClientModule,
+    UserLoginModule,
   ],
   controllers: [AuthController],
   providers: [
@@ -35,6 +38,12 @@ import { AppClientModule } from '../app-client/app-client.module';
     BasicStrategy,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: AuthorizationGuard },
+    {
+      provide: APP_INTERCEPTOR,
+      scope: Scope.REQUEST,
+      useClass: BearerTokenInterceptor,
+    },
   ],
+  exports: [AuthService],
 })
 export class AuthModule {}

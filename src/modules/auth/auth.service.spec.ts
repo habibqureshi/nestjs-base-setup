@@ -3,15 +3,19 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CustomLoggerService } from '../logger/logger.service';
+import { RedisService } from '../redis/redis.service';
+import { AppClientService } from '../app-client/app-client.service';
+import { UserLoginService } from '../user-login/user-login.service';
 import { BadRequestException } from '@nestjs/common';
+import { Request } from 'express';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { Permission } from '../permissions/entities/permission.entity';
 import { APP_CONFIGS } from 'src/config/app.config';
 import { IUser } from 'src/interfaces/user.interface';
-import { RedisService } from '../redis/redis.service';
-import { AppClientService } from '../app-client/app-client.service';
 import * as bcrypt from 'bcrypt';
+import { UnauthorizedErrorInterceptor } from 'src/config/interceptors/unauthorized.interceptor';
+import { PREFIX } from 'src/common/constants/redis';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -59,6 +63,17 @@ describe('AuthService', () => {
     __entity: 'User',
   }) as User & IUser;
 
+  const mockRequest = {
+    headers: {},
+    ip: '127.0.0.1',
+    get: jest.fn().mockReturnValue('Mozilla/5.0'),
+  } as unknown as Request;
+
+  const mockPrevTokens = {
+    accessToken: 'old-access-token',
+    refreshToken: 'old-refresh-token',
+  };
+
   const mockUsersService = {
     findOneOrNull: jest.fn(),
   };
@@ -78,6 +93,10 @@ describe('AuthService', () => {
 
   const mockAppClientService = {
     findOneOrNull: jest.fn(),
+  };
+
+  const mockUserLoginService = {
+    create: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -104,6 +123,10 @@ describe('AuthService', () => {
           provide: AppClientService,
           useValue: mockAppClientService,
         },
+        {
+          provide: UserLoginService,
+          useValue: mockUserLoginService,
+        },
       ],
     }).compile();
 
@@ -126,9 +149,14 @@ describe('AuthService', () => {
       mockUsersService.findOneOrNull.mockResolvedValue(mockUser);
       jest.spyOn(bcrypt, 'compareSync').mockReturnValue(true);
       mockRedisService.set.mockResolvedValue(undefined);
+      mockUserLoginService.create.mockResolvedValue(undefined);
 
       // Act
-      const result = await service.validateUser('john@example.com', 'password');
+      const result = await service.validateUser(
+        mockRequest,
+        'john@example.com',
+        'password',
+      );
 
       // Assert
       expect(result).toEqual({
@@ -162,6 +190,10 @@ describe('AuthService', () => {
           },
         },
       });
+      expect(mockUserLoginService.create).toHaveBeenCalledWith(
+        mockRequest,
+        mockUser,
+      );
     });
 
     it('should throw BadRequestException if user not found', async () => {
@@ -170,7 +202,7 @@ describe('AuthService', () => {
 
       // Act & Assert
       await expect(
-        service.validateUser('john@example.com', 'password'),
+        service.validateUser(mockRequest, 'john@example.com', 'password'),
       ).rejects.toThrow(BadRequestException);
       expect(mockLoggerService.log).toHaveBeenCalledWith(
         'User not found for john@example.com',
@@ -184,7 +216,7 @@ describe('AuthService', () => {
 
       // Act & Assert
       await expect(
-        service.validateUser('john@example.com', 'wrong_password'),
+        service.validateUser(mockRequest, 'john@example.com', 'wrong_password'),
       ).rejects.toThrow(BadRequestException);
       expect(mockLoggerService.log).toHaveBeenCalledWith(
         'Password does not match for john@example.com',
@@ -196,9 +228,15 @@ describe('AuthService', () => {
       const userWithoutRoles = { ...mockUser, roles: [] };
       mockUsersService.findOneOrNull.mockResolvedValue(userWithoutRoles);
       jest.spyOn(bcrypt, 'compareSync').mockReturnValue(true);
+      mockRedisService.set.mockResolvedValue(undefined);
+      mockUserLoginService.create.mockResolvedValue(undefined);
 
       // Act
-      const result = await service.validateUser('john@example.com', 'password');
+      const result = await service.validateUser(
+        mockRequest,
+        'john@example.com',
+        'password',
+      );
 
       // Assert
       expect(result).toEqual({
@@ -217,9 +255,15 @@ describe('AuthService', () => {
       };
       mockUsersService.findOneOrNull.mockResolvedValue(userWithoutPermissions);
       jest.spyOn(bcrypt, 'compareSync').mockReturnValue(true);
+      mockRedisService.set.mockResolvedValue(undefined);
+      mockUserLoginService.create.mockResolvedValue(undefined);
 
       // Act
-      const result = await service.validateUser('john@example.com', 'password');
+      const result = await service.validateUser(
+        mockRequest,
+        'john@example.com',
+        'password',
+      );
 
       // Assert
       expect(result).toEqual({
@@ -238,7 +282,7 @@ describe('AuthService', () => {
 
       // Act & Assert
       await expect(
-        service.validateUser('john@example.com', 'password'),
+        service.validateUser(mockRequest, 'john@example.com', 'password'),
       ).rejects.toThrow('Redis error');
       expect(mockRedisService.set).toHaveBeenCalledWith(
         `USER:${mockUser.id}`,
@@ -334,13 +378,10 @@ describe('AuthService', () => {
       const mockTokens = ['new-access-token', 'new-refresh-token'];
       mockJwtService.signAsync.mockResolvedValueOnce(mockTokens[0]);
       mockJwtService.signAsync.mockResolvedValueOnce(mockTokens[1]);
-      const mockUserWithRefreshToken = {
-        ...mockUser,
-        refreshToken: 'mock-refresh-token',
-      };
+      mockRedisService.set.mockResolvedValue(undefined);
 
       // Act
-      const result = await service.refresh(mockUserWithRefreshToken);
+      const result = await service.refresh(mockUser, mockPrevTokens);
 
       // Assert
       expect(result).toEqual({
@@ -353,6 +394,15 @@ describe('AuthService', () => {
         },
       });
       expect(jwtService.signAsync).toHaveBeenCalledTimes(2);
+      expect(mockRedisService.set).toHaveBeenCalledTimes(2);
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        expect.stringContaining(mockPrevTokens.accessToken),
+        true,
+      );
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        expect.stringContaining(mockPrevTokens.refreshToken),
+        true,
+      );
     });
 
     it('should handle Redis set error gracefully during refresh', async () => {
@@ -361,13 +411,9 @@ describe('AuthService', () => {
       mockJwtService.signAsync.mockResolvedValueOnce(mockTokens[0]);
       mockJwtService.signAsync.mockResolvedValueOnce(mockTokens[1]);
       mockRedisService.set.mockRejectedValue(new Error('Redis error'));
-      const mockUserWithRefreshToken = {
-        ...mockUser,
-        refreshToken: 'mock-refresh-token',
-      };
 
       // Act
-      const result = await service.refresh(mockUserWithRefreshToken);
+      const result = await service.refresh(mockUser, mockPrevTokens);
 
       // Assert
       expect(result).toEqual({
@@ -386,7 +432,9 @@ describe('AuthService', () => {
       mockJwtService.signAsync.mockRejectedValue(new Error('JWT error'));
 
       // Act & Assert
-      await expect(service.refresh(mockUser)).rejects.toThrow('JWT error');
+      await expect(service.refresh(mockUser, mockPrevTokens)).rejects.toThrow(
+        'JWT error',
+      );
     });
   });
 
@@ -464,72 +512,73 @@ describe('AuthService', () => {
   });
 
   describe('validateClient', () => {
-    const mockClient = {
-      id: 1,
-      clientId: 'test-client',
-      clientSecret: 'hashed_secret',
-      deleted: false,
-    };
-
     it('should validate client successfully', async () => {
       // Arrange
+      const clientId = 'test-client';
+      const clientSecret = 'hashed-secret';
+      const mockClient = {
+        clientId,
+        clientSecret,
+        deleted: false,
+      };
       mockAppClientService.findOneOrNull.mockResolvedValue(mockClient);
       jest
         .spyOn(bcrypt, 'compare')
         .mockImplementation(() => Promise.resolve(true));
 
       // Act
-      const result = await service.validateClient('test-client', 'secret');
+      const result = await service.validateClient(clientId, 'raw-secret');
 
       // Assert
       expect(result).toBe(true);
-      expect(mockLoggerService.log).toHaveBeenCalledWith('checking client');
       expect(mockAppClientService.findOneOrNull).toHaveBeenCalledWith({
-        where: { clientId: 'test-client' },
+        where: { clientId },
       });
+      expect(mockLoggerService.log).toHaveBeenCalledWith('checking client');
     });
 
-    it('should throw UnauthorizedErrorInterceptor if client not found', async () => {
+    it('should throw UnauthorizedErrorInterceptor when client not found', async () => {
       // Arrange
+      const clientId = 'non-existent-client';
       mockAppClientService.findOneOrNull.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(
-        service.validateClient('test-client', 'secret'),
-      ).rejects.toMatchObject({
-        response: {
-          status: 401,
-          errors: ['Invalid client!'],
-        },
-      });
+      await expect(service.validateClient(clientId, 'secret')).rejects.toThrow(
+        UnauthorizedErrorInterceptor,
+      );
       expect(mockLoggerService.log).toHaveBeenCalledWith(
-        'invalid client test-client',
+        `invalid client ${clientId}`,
       );
     });
 
-    it('should throw UnauthorizedErrorInterceptor if client is deleted', async () => {
+    it('should throw UnauthorizedErrorInterceptor when client is deleted', async () => {
       // Arrange
-      mockAppClientService.findOneOrNull.mockResolvedValue({
-        ...mockClient,
+      const clientId = 'deleted-client';
+      const mockClient = {
+        clientId,
+        clientSecret: 'hashed-secret',
         deleted: true,
-      });
+      };
+      mockAppClientService.findOneOrNull.mockResolvedValue(mockClient);
 
       // Act & Assert
-      await expect(
-        service.validateClient('test-client', 'secret'),
-      ).rejects.toMatchObject({
-        response: {
-          status: 401,
-          errors: ['Invalid client!'],
-        },
-      });
+      await expect(service.validateClient(clientId, 'secret')).rejects.toThrow(
+        UnauthorizedErrorInterceptor,
+      );
       expect(mockLoggerService.log).toHaveBeenCalledWith(
-        'invalid client test-client',
+        `invalid client ${clientId}`,
       );
     });
 
-    it('should throw UnauthorizedErrorInterceptor if password is invalid', async () => {
+    it('should throw UnauthorizedErrorInterceptor when secret is invalid', async () => {
       // Arrange
+      const clientId = 'test-client';
+      const clientSecret = 'hashed-secret';
+      const mockClient = {
+        clientId,
+        clientSecret,
+        deleted: false,
+      };
       mockAppClientService.findOneOrNull.mockResolvedValue(mockClient);
       jest
         .spyOn(bcrypt, 'compare')
@@ -537,14 +586,111 @@ describe('AuthService', () => {
 
       // Act & Assert
       await expect(
-        service.validateClient('test-client', 'wrong_secret'),
-      ).rejects.toMatchObject({
-        response: {
-          status: 401,
-          errors: ['Invalid client!'],
-        },
-      });
+        service.validateClient(clientId, 'wrong-secret'),
+      ).rejects.toThrow(UnauthorizedErrorInterceptor);
       expect(mockLoggerService.log).toHaveBeenCalledWith('invalid password!');
+    });
+  });
+
+  describe('logout', () => {
+    it('should block token with Bearer prefix', async () => {
+      // Arrange
+      const token = 'test-token';
+      const authorization = `Bearer ${token}`;
+      mockRedisService.set.mockResolvedValue(undefined);
+
+      // Act
+      await service.logout(authorization);
+
+      // Assert
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        `${PREFIX.BLOCKED_TOKEN}${token}`,
+        true,
+      );
+    });
+
+    it('should block token with bearer prefix', async () => {
+      // Arrange
+      const token = 'test-token';
+      const authorization = `bearer ${token}`;
+      mockRedisService.set.mockResolvedValue(undefined);
+
+      // Act
+      await service.logout(authorization);
+
+      // Assert
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        `${PREFIX.BLOCKED_TOKEN}${token}`,
+        true,
+      );
+    });
+
+    it('should block token without prefix', async () => {
+      // Arrange
+      const token = 'test-token';
+      mockRedisService.set.mockResolvedValue(undefined);
+
+      // Act
+      await service.logout(token);
+
+      // Assert
+      expect(mockRedisService.set).toHaveBeenCalledWith(
+        `${PREFIX.BLOCKED_TOKEN}${token}`,
+        true,
+      );
+    });
+
+    it('should handle Redis set error gracefully', async () => {
+      // Arrange
+      const token = 'test-token';
+      const authorization = `Bearer ${token}`;
+      mockRedisService.set.mockRejectedValue(new Error('Redis error'));
+
+      // Act & Assert
+      await expect(service.logout(authorization)).rejects.toThrow(
+        'Redis error',
+      );
+    });
+  });
+
+  describe('isBlocked', () => {
+    it('should return true when token is blocked', async () => {
+      // Arrange
+      const token = 'test-token';
+      mockRedisService.get.mockResolvedValue(true);
+
+      // Act
+      const result = await service.isBlocked(token);
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockRedisService.get).toHaveBeenCalledWith(
+        `${PREFIX.BLOCKED_TOKEN}${token}`,
+      );
+    });
+
+    it('should return null when token is not blocked', async () => {
+      // Arrange
+      const token = 'test-token';
+      mockRedisService.get.mockResolvedValue(null);
+
+      // Act
+      const result = await service.isBlocked(token);
+
+      // Assert
+      expect(result).toBeNull();
+      expect(mockRedisService.get).toHaveBeenCalledWith(
+        `${PREFIX.BLOCKED_TOKEN}${token}`,
+      );
+    });
+
+    it('should handle Redis get error gracefully', async () => {
+      // Arrange
+      const token = 'test-token';
+      mockRedisService.get.mockRejectedValue(new Error('Redis error'));
+
+      // Act & Assert
+      await expect(service.isBlocked(token)).rejects.toThrow('Redis error');
     });
   });
 });

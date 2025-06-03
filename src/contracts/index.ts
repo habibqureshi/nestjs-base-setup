@@ -3,6 +3,7 @@ import { userContract } from './users';
 import { authContract } from './auth';
 import { roleContract } from './role';
 import { permissionContract } from './permission';
+import { userLoginContract } from './user-logins';
 
 const c = initContract();
 
@@ -12,6 +13,7 @@ export const api = c.router(
     auth: authContract,
     role: roleContract,
     permission: permissionContract,
+    userLogin: userLoginContract,
   },
   { pathPrefix: '/api' },
 );

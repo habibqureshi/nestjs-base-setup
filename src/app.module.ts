@@ -13,6 +13,7 @@ import { APP_CONFIGS } from './config/app.config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { RedisModule } from './modules/redis/redis.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { UserLoginModule } from './modules/user-login/user-login.module';
 import KeyvRedis from '@keyv/redis';
 
 @Module({
@@ -44,16 +45,9 @@ import KeyvRedis from '@keyv/redis';
     RolesModule,
     PermissionModule,
     RedisModule,
+    UserLoginModule,
   ],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthorizationGuard,
-    // },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
