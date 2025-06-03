@@ -13,6 +13,9 @@ import { RedisService } from '../redis/redis.service';
 import { AppClientService } from '../app-client/app-client.service';
 import { UnauthorizedErrorInterceptor } from 'src/config/interceptors/unauthorized.interceptor';
 import { IJwtPayload } from 'src/interfaces/jwt.payload';
+import { PREFIX } from 'src/common/constants/redis';
+import { Request } from 'express';
+import { UserLoginService } from '../user-login/user-login.service';
 
 @Injectable()
 export class AuthService {
@@ -22,9 +25,15 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly appClientService: AppClientService,
+    private readonly userLoginService: UserLoginService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<IUser> {
+  async validateUser(
+    req: Request,
+    email: string,
+    password: string,
+  ): Promise<IUser> {
+    this.logger.log(`Validating user ${email}`);
     const user: User | null = await this.userService.findOneOrNull({
       where: {
         email,
@@ -58,7 +67,8 @@ export class AuthService {
       name: user.name,
       permissions: getUserPermissions(user),
     };
-    await this.redisService.set<IUser>(`USER:${user.id}`, parsedUser);
+    await this.redisService.set<IUser>(`${PREFIX.USER}${user.id}`, parsedUser);
+    await this.userLoginService.create(req, user);
     return parsedUser;
   }
 
@@ -80,7 +90,6 @@ export class AuthService {
         expiresIn: APP_CONFIGS.JWT.REFRESH_EXPIRY,
       }),
     ]);
-
     return {
       accessToken,
       refreshToken,
@@ -92,7 +101,18 @@ export class AuthService {
     };
   }
 
-  async refresh(user: IUser): Promise<TokenResponseSchema> {
+  async refresh(
+    user: IUser,
+    prevTokens: { accessToken: string; refreshToken: string },
+  ): Promise<TokenResponseSchema> {
+    await Promise.allSettled(
+      Object.values(prevTokens).map(async (token) => {
+        await this.redisService.set<boolean>(
+          `${PREFIX.BLOCKED_TOKEN}${token.replace('bearer ', '').replace('Bearer ', '')}`,
+          true,
+        );
+      }),
+    );
     const payload: IJwtPayload = {
       sub: user.id,
     };
@@ -115,7 +135,9 @@ export class AuthService {
   }
 
   async findUserById(id: number) {
-    const cachedUser: IUser = await this.redisService.get<IUser>(`USER:${id}`);
+    const cachedUser: IUser = await this.redisService.get<IUser>(
+      `${PREFIX.USER}${id}`,
+    );
     if (cachedUser) {
       return cachedUser;
     }
@@ -162,6 +184,21 @@ export class AuthService {
       throw new UnauthorizedErrorInterceptor(['Invalid client!']);
     }
     return true;
+  }
+
+  async logout(authorization: string) {
+    const token = authorization.replace('Bearer ', '').replace('bearer ', '');
+    await this.redisService.set<boolean>(
+      `${PREFIX.BLOCKED_TOKEN}${token}`,
+      true,
+    );
+  }
+
+  async isBlocked(token: string) {
+    const isBlocked = await this.redisService.get<boolean>(
+      `${PREFIX.BLOCKED_TOKEN}${token}`,
+    );
+    return isBlocked;
   }
 }
 

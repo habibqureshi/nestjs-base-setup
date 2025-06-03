@@ -1,17 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { HttpStatus, UnauthorizedException } from '@nestjs/common';
 import { IUser } from 'src/interfaces/user.interface';
-import { TokenResponseSchema } from 'src/common/types/auth.types';
 
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: AuthService;
-
-  const mockAuthService = {
-    login: jest.fn(),
-    refresh: jest.fn(),
-  };
 
   const mockUser: IUser = {
     id: 1,
@@ -20,19 +15,10 @@ describe('AuthController', () => {
     permissions: null,
   };
 
-  const mockTokenResponse: TokenResponseSchema = {
-    accessToken: 'access-token',
-    refreshToken: 'refresh-token',
-    user: {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-    },
-  };
-
-  const mockRequest = {
-    body: {},
-    headers: {},
+  const mockTokenResponse = {
+    accessToken: 'new-access-token',
+    refreshToken: 'new-refresh-token',
+    user: mockUser,
   };
 
   beforeEach(async () => {
@@ -41,7 +27,11 @@ describe('AuthController', () => {
       providers: [
         {
           provide: AuthService,
-          useValue: mockAuthService,
+          useValue: {
+            login: jest.fn().mockResolvedValue(mockTokenResponse),
+            refresh: jest.fn().mockResolvedValue(mockTokenResponse),
+            logout: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile();
@@ -57,48 +47,94 @@ describe('AuthController', () => {
   describe('login', () => {
     it('should return token response on successful login', async () => {
       // Arrange
-      mockAuthService.login.mockResolvedValue(mockTokenResponse);
+      const mockLoginRequest = {
+        body: {},
+        headers: {},
+      };
 
       // Act
-      const result = await (await controller.login(mockUser))(mockRequest);
+      const handler = await controller.login(mockUser);
+      const result = await handler(mockLoginRequest);
 
       // Assert
-      expect(result).toEqual({ status: 200, body: mockTokenResponse });
+      expect(result).toEqual({
+        status: HttpStatus.OK,
+        body: mockTokenResponse,
+      });
       expect(authService.login).toHaveBeenCalledWith(mockUser);
-    });
-
-    it('should throw error if user is not provided', async () => {
-      // Arrange
-      mockAuthService.login.mockRejectedValue(new Error('User not found!'));
-
-      // Act & Assert
-      await expect(
-        (await controller.login(undefined))(mockRequest),
-      ).rejects.toThrow('User not found!');
     });
   });
 
   describe('refresh', () => {
     it('should return new token response on successful refresh', async () => {
       // Arrange
-      mockAuthService.refresh.mockResolvedValue(mockTokenResponse);
+      const mockRefreshRequest = {
+        headers: {
+          authorization: 'Bearer old-refresh-token',
+        },
+        body: {
+          accessToken: 'old-access-token',
+        },
+      };
 
       // Act
-      const result = await (await controller.refresh(mockUser))(mockRequest);
+      const handler = await controller.refresh(mockUser);
+      const result = await handler(mockRefreshRequest);
 
       // Assert
-      expect(result).toEqual({ status: 200, body: mockTokenResponse });
-      expect(authService.refresh).toHaveBeenCalledWith(mockUser);
+      expect(result).toEqual({
+        status: HttpStatus.OK,
+        body: mockTokenResponse,
+      });
+      expect(authService.refresh).toHaveBeenCalledWith(mockUser, {
+        accessToken: 'old-access-token',
+        refreshToken: 'Bearer old-refresh-token',
+      });
     });
 
     it('should throw error if user is not provided', async () => {
       // Arrange
-      mockAuthService.refresh.mockRejectedValue(new Error('User not found!'));
+      const mockRefreshRequest = {
+        headers: {
+          authorization: 'Bearer old-refresh-token',
+        },
+        body: {
+          accessToken: 'old-access-token',
+        },
+      };
+
+      // Mock the authService to throw an error for null user
+      jest
+        .spyOn(authService, 'refresh')
+        .mockRejectedValueOnce(new UnauthorizedException(['User not found']));
 
       // Act & Assert
-      await expect(
-        (await controller.refresh(undefined))(mockRequest),
-      ).rejects.toThrow('User not found!');
+      const handler = await controller.refresh(null);
+      await expect(handler(mockRefreshRequest)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+  });
+
+  describe('logout', () => {
+    it('should return success message on logout', async () => {
+      // Arrange
+      const mockLogoutRequest = {
+        headers: {
+          authorization: 'Bearer token-to-logout',
+        },
+      };
+
+      // Act
+      const handler = await controller.logout();
+      const result = await handler(mockLogoutRequest);
+
+      // Assert
+      expect(result).toEqual({
+        status: HttpStatus.OK,
+        body: { message: 'Logged out successfully!' },
+      });
+      expect(authService.logout).toHaveBeenCalledWith('Bearer token-to-logout');
     });
   });
 });

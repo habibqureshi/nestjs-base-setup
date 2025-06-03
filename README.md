@@ -321,7 +321,152 @@ The application follows a modular, layered architecture pattern with clear separ
   - CORS configuration
   - Helmet security headers
 
-#### 4. Cross-Cutting Concerns
+#### 4. Protected Routes & Client Authentication
+
+The application provides a `@Protected` decorator for securing routes. This decorator:
+
+1. Marks routes as protected, requiring authentication
+2. Automatically invokes `ClientAuthz` for client authentication
+3. Works in conjunction with other guards for comprehensive security
+
+Example usage in a controller:
+
+```typescript
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
+
+  @Protected() // Basic protection - requires valid Client ID
+  @UseGuards(LocalAuthGuard)
+  @TsRestHandler(api.auth.login)
+  async login(@UserReq() user: IUser) {
+    return tsRestHandler(api.auth.login, async (_: LoginReq) => {
+      const response = await this.authService.login(user);
+      return { status: HttpStatus.OK, body: response };
+    });
+  }
+
+  @Public() // Public route - no authentication required
+  @UseGuards(JwtRefreshTokenGuard) //Custom auth
+  @TsRestHandler(api.auth.refresh)
+  async refresh(@UserReq() user: IUser) {
+    // ... refresh token logic
+  }
+
+  @Protected() // Protected route - requires both JWT and client auth
+  @TsRestHandler(api.auth.logout)
+  async logout() {
+    // ... logout logic
+  }
+}
+```
+
+When using the `@Protected` decorator, the following security checks are automatically applied:
+
+1. **JWT Validation**
+
+   - Verifies the JWT token's validity
+   - Checks token expiration
+   - Validates token signature
+
+2. **Client Authentication**
+
+   - Validates client credentials using Basic Auth
+   - Checks client permissions
+   - Applies client-specific rate limits
+   - Logs client access
+
+3. **User Authorization**
+
+   - Verifies user permissions
+   - Checks role-based access
+   - Validates resource ownership
+
+4. **Rate Limiting**
+   - Applies rate limits based on client
+   - Enforces user-specific limits
+   - Handles concurrent requests
+
+The `@Protected` decorator is implemented as:
+
+```typescript
+// src/config/decorator/protected.decorator.ts
+import { CustomDecorator, SetMetadata } from '@nestjs/common';
+
+export const PORTECTED_KEY = 'isProtected';
+export const Protected = (): CustomDecorator<string> =>
+  SetMetadata(PORTECTED_KEY, true);
+```
+
+This decorator works in conjunction with the `ClientAuthzGuard` to provide a comprehensive security layer for your API endpoints.
+
+### User Request Decorator
+
+The application provides a `@UserReq` decorator to easily access the authenticated user in your controllers. This decorator:
+
+1. Extracts the user object from the request
+2. Provides type-safe access to user properties
+3. Works with the `IUser` interface for consistent typing
+
+Example usage:
+
+```typescript
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
+
+  @Protected() // Basic protection - requires valid Client ID
+  @UseGuards(LocalAuthGuard)
+  @TsRestHandler(api.auth.login)
+  async login(@UserReq() user: IUser) {
+    // Easily access the authenticated user
+    return tsRestHandler(api.auth.login, async (_: LoginReq) => {
+      const response = await this.authService.login(user);
+      return { status: HttpStatus.OK, body: response };
+    });
+  }
+
+  @Public() // Public route - no authentication required
+  @UseGuards(JwtRefreshTokenGuard) //Custom auth
+  @TsRestHandler(api.auth.refresh)
+  async refresh(@UserReq() user: IUser) {
+    // Access user in refresh endpoint
+    // ... refresh token logic
+  }
+}
+```
+
+The `@UserReq` decorator is implemented as:
+
+```typescript
+// src/common/decorators/user.decorator.ts
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { Request } from 'express';
+import { IUser } from 'src/interfaces/user.interface';
+
+export const UserReq = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext): IUser => {
+    const request: Request = ctx.switchToHttp().getRequest();
+    return request.user;
+  },
+);
+```
+
+This decorator:
+
+1. Uses NestJS's `createParamDecorator` for custom parameter decoration
+2. Extracts the user from the request object
+3. Returns the typed user object (`IUser` interface)
+4. Can be used in any controller method that has an authenticated user
+
+Benefits:
+
+- Type-safe access to user properties
+- Clean and reusable code
+- Consistent user object structure
+- Easy integration with guards and other decorators
+
+#### 5. Cross-Cutting Concerns
 
 - **Logging**
 
@@ -343,7 +488,7 @@ The application follows a modular, layered architecture pattern with clear separ
   - Schema validation
   - Type safety
 
-#### 5. API Layer
+#### 6. API Layer
 
 - **REST API**
 

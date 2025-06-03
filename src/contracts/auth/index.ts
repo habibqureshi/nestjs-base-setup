@@ -2,14 +2,15 @@ import { initContract } from '@ts-rest/core';
 import {
   LoginSchema,
   RefreshSchema,
+  RefreshTokenBody,
   TokenResponseSchema,
 } from 'src/common/types/auth.types';
 import {
   BadRequestError,
+  SuccessMessage,
   UnauthorizedError,
   UnprocessableError,
 } from 'src/common/types/error-responses.types';
-import { z } from 'zod';
 
 const c = initContract();
 
@@ -35,9 +36,19 @@ export const authContract = c.router(
       method: 'POST',
       summary: 'Refresh token',
       headers: RefreshSchema,
-      body: z.any(),
+      body: RefreshTokenBody,
       responses: {
         200: TokenResponseSchema,
+        400: BadRequestError,
+      },
+    },
+    logout: {
+      path: '/logout',
+      method: 'DELETE',
+      summary: 'Logout',
+      responses: {
+        200: SuccessMessage,
+        401: UnauthorizedError,
         400: BadRequestError,
       },
     },

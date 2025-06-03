@@ -25,7 +25,7 @@ export const APP_CONFIGS = {
   },
   RATE_LIMIT: {
     TTL: process.env['RATE_LIMIT_TTL'] || 60,
-    LIMIT: process.env['RATE_LIMIT_LIMIT'] || 10,
+    LIMIT: process.env['RATE_LIMIT_LIMIT'] || 100,
   },
   REDIS: {
     USERNAME: process.env['REDIS_USERNAME'] || '',

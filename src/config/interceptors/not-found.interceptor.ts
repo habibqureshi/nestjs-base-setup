@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
+
 import {
   HttpStatus,
   NestInterceptor,
@@ -15,13 +17,16 @@ export class NotFoundErrorInterceptor implements NestInterceptor {
     next: CallHandler<any>,
   ): Observable<any> | Promise<Observable<any>> {
     return next.handle().pipe(
-      catchError((error: NotFoundException) => {
-        const errorResponse = {
-          status: HttpStatus.NOT_FOUND,
-          message: HttpStatus[HttpStatus.NOT_FOUND],
-          errors: [error.message],
-        };
-        return throwError(() => new NotFoundException(errorResponse));
+      catchError((error) => {
+        if (error?.status === 404) {
+          const errorResponse = {
+            status: HttpStatus.NOT_FOUND,
+            message: HttpStatus[HttpStatus.NOT_FOUND],
+            errors: [error.message],
+          };
+          return throwError(() => new NotFoundException(errorResponse));
+        }
+        return throwError(() => error);
       }),
     );
   }

@@ -11,7 +11,6 @@ services:
       - '5432:5432'
     volumes:
       - app_db_data:/var/lib/postgresql/data
-      - ./base-setup.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     networks:
       - app_net
 
@@ -23,33 +22,6 @@ services:
       - '6380:6379'
     networks:
       - app_net
-
-  # loyalty_backend:
-  #   build: .
-  #   container_name: loyalty_backend
-  #   command: npm run start:dev
-  #   depends_on:
-  #     - postgres
-  #   develop:
-  #     watch:
-  #       - action: sync
-  #         path: ./src
-  #         target: /usr/src/app/src
-  #         ignore:
-  #           - node_modules/
-  #       - action: rebuild
-  #         path: package.json
-  #   environment:
-  #     DB_TYPE: postgres
-  #     DB_HOST: postgres
-  #     DB_USER: loyalty-user
-  #     DB_PASSWORD: password
-  #     DB_NAME: loyalty
-  #     DB_PORT: '5432'
-  #   ports:
-  #     - '3000:3000'
-  #   networks:
-  #     - loyalty_net
 volumes:
   app_db_data:
 

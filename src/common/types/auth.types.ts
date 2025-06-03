@@ -21,7 +21,13 @@ export const TokenResponseSchema = z.object({
 export type TokenResponseSchema = z.infer<typeof TokenResponseSchema>;
 
 export const RefreshSchema = z.object({
-  Authorization: z.string().min(1, 'Required'),
+  authorization: z.string().min(1, 'Required'),
 });
+
+export const RefreshTokenBody = z.object({
+  accessToken: z.string().min(1, 'Required'),
+});
+
+export type RefreshTokenBody = z.infer<typeof RefreshTokenBody>;
 
 export type RefreshSchema = z.infer<typeof RefreshSchema>;

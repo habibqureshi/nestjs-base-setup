@@ -1,18 +1,16 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql_container
+  postgres:
+    image: postgres:16
+    container_name: postgres_container
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: postgres
-      MYSQL_USER: postgres
-      MYSQL_PASSWORD: password
-    # ports:
-    #   - '3306:3306'
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - '5432:5432'
     volumes:
       - app_db_data:/var/lib/postgresql/data
-      - ./base-setup.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - app_net
 
@@ -20,16 +18,35 @@ services:
     build: .
     container_name: app_backend
     depends_on:
-      - mysql
+      - postgres
+      - redis
     environment:
-      DB_TYPE: postgres
-      DB_HOST: postgres
-      DB_USER: app-user
-      DB_PASSWORD: password
-      DB_NAME: app
-      DB_PORT: '5432'
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=postgres
+      - JWT_SECRET=your-secret-key
+      - JWT_TOKEN_EXPIRY=1h
+      - JWT_REFRESH_SECRET=your-refresh-secret-key
+      - JWT_REFRESH_EXPIRY=7d
+      - RATE_LIMIT_TTL=60
+      - RATE_LIMIT_LIMIT=10
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_USER_TTL=86400000
+      - ENV=prod
     ports:
       - '3000:3000'
+    networks:
+      - app_net
+  redis:
+    image: redis:alpine
+    container_name: redis_container
+    restart: always
+    ports:
+      - '6379:6379'
     networks:
       - app_net
 
