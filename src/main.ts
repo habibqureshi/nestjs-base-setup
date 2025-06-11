@@ -10,7 +10,9 @@ import { NotFoundErrorInterceptor } from './config/interceptors/not-found.interc
 // import helmet  from 'helmet'
 
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {
+    cors: true,
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(

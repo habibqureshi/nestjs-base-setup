@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:local": "yarn run migration:run && yarn run start:dev",
+    "start:local": "yarn migration:run && yarn seeds:run && yarn start:dev",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -24,10 +24,11 @@
     "docker:dev:stop": "docker compose -f dev-docker-compose.yml down",
     "docker:prod": "docker compose up -d",
     "typeorm": "ts-node --project tsconfig.json -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "yarn run typeorm -d ./src/db/datasource.ts migration:generate ./src/db/migrations/$MIGRATION",
-    "migration:create": "yarn run typeorm migration:create ./src/db/migrations/$MIGRATION",
+    "migration:generate": "yarn run typeorm -d ./src/db/datasource.ts migration:generate ./src/db/migrations/$MIGRATION_NAME",
+    "migration:create": "yarn run typeorm migration:create ./src/db/migrations/$MIGRATION_NAME",
     "migration:revert": "yarn run typeorm -d ./src/db/datasource.ts migration:revert",
-    "migration:run": "yarn run typeorm -d ./src/db/datasource.ts migration:run"
+    "migration:run": "yarn run typeorm -d ./src/db/datasource.ts migration:run",
+    "seeds:run": "ts-node --project tsconfig.json -r tsconfig-paths/register ./src/db/seeds/seed.ts"
   },
   "dependencies": {
     "@anatine/zod-openapi": "^2.2.8",

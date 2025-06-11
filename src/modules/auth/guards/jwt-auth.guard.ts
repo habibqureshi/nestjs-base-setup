@@ -2,6 +2,7 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
+import { PORTECTED_KEY } from 'src/config/decorator/protected.decorator';
 import { IS_PUBLIC_KEY } from 'src/config/decorator/public.route.decorator';
 import { UnauthorizedErrorInterceptor } from 'src/config/interceptors/unauthorized.interceptor';
 import { IUser } from 'src/interfaces/user.interface';
@@ -31,6 +32,13 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ]);
 
     if (isPublic) {
+      return true;
+    }
+    const isProtected = this.reflector.getAllAndOverride<boolean>(
+      PORTECTED_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    if (isProtected) {
       return true;
     }
     return super.canActivate(context);
